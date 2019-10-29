@@ -1,21 +1,29 @@
+/*
+Copyright 2019 Ilia S. Kovalev
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+	   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
+
 #ifndef INTERFACES_HPP
 #define INTERFACES_HPP
 
-#include "detail/Typelist.hpp"
-#include "detail/Interfaces.hpp"
+#include "enums.hpp"
+#include "detail/typelist.hpp"
+#include "detail/interfaces_detail.hpp"
 
 namespace algorithm_assembler
 {
-	/// <summary>
-	/// Defines hints for auxiliary data updates.
-	/// </summary>
-	enum class Updating_policy
-	{
-		never,		/// Auxiliary data is constant.
-		sometimes,	/// Auxiliary data is updated when a module indicates about changes.
-		always		/// Auxiliary data updates on every iteration.
-	};
-
 	/// <summary>
 	/// Interface for modules of main processing pipeline.
 	/// </summary>
@@ -24,7 +32,7 @@ namespace algorithm_assembler
 	{
 	public:
 		using Output = Output_;
-		using Inputs = Typelist<Inputs_...>;
+		using Inputs = typelist::Typelist<Inputs_...>;
 
 		/// <summary>
 		/// Processes input data.
@@ -41,10 +49,10 @@ namespace algorithm_assembler
 	class Functor<Output_> : detail::Functor
 	{
 	public:
-		using Output_type = Output;
-		using Input_types = Typelist<>;
+		using Output_type = Output_;
+		using Input_types = typelist::Typelist<>;
 
-		virtual Output operator()() = 0;
+		virtual Output_type operator()() = 0;
 
 		/// <summary>
 		/// Should return true, if module is able to return data.
@@ -59,7 +67,7 @@ namespace algorithm_assembler
 	class Transforms;
 
 	template<Updating_policy UP, typename T>
-	class Transforms <UP, typename T>
+	class Transforms<UP, T>
 	{
 	public:
 		/// <summary>
@@ -69,7 +77,7 @@ namespace algorithm_assembler
 	};
 
 	template<typename T>
-	class Transforms <Updating_policy::sometimes, typename T>
+	class Transforms <Updating_policy::sometimes, T>
 	{
 	public:
 		/// <summary>
@@ -111,41 +119,8 @@ namespace algorithm_assembler
 		public detail::Demandands<T>,
 		public detail::Demandands<Ts>...
 	{
-		usind demanded_types = typelist::Typelist<T, Ts...>
+		using demanded_types = typelist::Typelist<T, Ts...>;
 	};
-
-
-	namespace detail
-	{
-		template<Updating_policy UP, typename T>
-		class Provides :
-			virtual Providing_policy<UP>,
-			virtual Providing_type<T>
-		{
-		public:
-			template<typename T1>
-			const T1& get() const noexcept;
-
-			template<>
-			const T& get<T>() const noexcept
-			{
-				if constexpr (CH == Changes::sometimes)
-					Generator<Changes::sometimes>::has_new_data_ = false;
-				return data_;
-			};
-
-#pragma warning(suppress: 26440) // noexcept or not depends on T.
-			void set(const T & in)
-			{
-				data_ = in;
-				if constexpr (CH == Changes::sometimes)
-					Generator<Changes::sometimes>::has_new_data_ = true;
-			}
-
-		private:
-			T data_;
-		};
-	}
 
 	/// <summary>
 	/// Interface for modules generating auxiliary data.
@@ -157,12 +132,7 @@ namespace algorithm_assembler
 	{
 	public:
 		template<Updating_policy UP>
-		using generates_types = Typelist<T, Ts...>;
-
-		/// <summary>
-		/// Returns data of type T_.
-		template<typename T_>
-		virtual T_ get() = 0;
+		using generates_types = typelist::Typelist<T, Ts...>;
 	};
 
 

@@ -14,12 +14,20 @@ Copyright 2019 Ilia S. Kovalev
    limitations under the License.
 */
 
-#ifndef DATA_PROCESSOR_HPP
-#define DATA_PROCESSOR_HPP
 
-namespace algorithm_assembler
-{
+#ifndef ENUMS_HPP
+#define ENUMS_HPP
 
+namespace algorithm_assembler {
+	/// <summary>
+	/// Defines hints for auxiliary data updates.
+	/// </summary>
+	enum class Updating_policy
+	{
+		never,		/// Auxiliary data is constant.
+		sometimes,	/// Auxiliary data is updated when a module indicates about changes.
+		always		/// Auxiliary data updates on every iteration.
+	};
 }
 
 #endif

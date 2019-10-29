@@ -70,7 +70,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\admin\source\repos\CPP\Algorithm Assembler\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)include\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -126,16 +126,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="tests\interfaces.cpp" />
+    <ClCompile Include="tests\interfaces.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="tests\main.cpp" />
-    <ClCompile Include="tests\typelist.cpp" />
+    <ClCompile Include="tests\typelist.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\algorithm_assembler\data_processor.hpp" />
     <ClInclude Include="include\algorithm_assembler\detail\heterogeneous_container_functions.hpp" />
-    <ClInclude Include="include\algorithm_assembler\detail\interfaces.hpp" />
+    <ClInclude Include="include\algorithm_assembler\detail\interfaces_detail.hpp" />
     <ClInclude Include="include\algorithm_assembler\detail\typelist_functions.hpp" />
     <ClInclude Include="include\algorithm_assembler\detail\typelist.hpp" />
+    <ClInclude Include="include\algorithm_assembler\enums.hpp" />
     <ClInclude Include="include\algorithm_assembler\Interfaces.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

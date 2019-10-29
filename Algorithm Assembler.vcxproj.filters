@@ -40,7 +40,10 @@
     <ClInclude Include="include\algorithm_assembler\detail\typelist.hpp">
       <Filter>Headers\Detail</Filter>
     </ClInclude>
-    <ClInclude Include="include\algorithm_assembler\detail\interfaces.hpp">
+    <ClInclude Include="include\algorithm_assembler\enums.hpp">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="include\algorithm_assembler\detail\interfaces_detail.hpp">
       <Filter>Headers\Detail</Filter>
     </ClInclude>
   </ItemGroup>
