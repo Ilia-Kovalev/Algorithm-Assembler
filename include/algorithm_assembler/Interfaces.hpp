@@ -27,7 +27,7 @@ namespace algorithm_assembler
 	/// Interface for modules of main processing pipeline.
 	/// </summary>
 	template<typename Output_, typename... Inputs_>
-	class Functor : detail::Functor
+	class Functor : public detail::Functor
 	{
 	public:
 		using Output_type = Output_;
@@ -45,7 +45,7 @@ namespace algorithm_assembler
 	/// Specialisation for functor without inputs (data source).
 	/// </summary>
 	template<typename Output_>
-	class Functor<Output_> : detail::Functor
+	class Functor<Output_> : public detail::Functor
 	{
 	public:
 		using Output_type = Output_;
@@ -56,7 +56,7 @@ namespace algorithm_assembler
 		/// <summary>
 		/// Should return true, if module is able to return data.
 		/// </summary>
-		bool is_active() const = 0;
+		virtual bool is_active() const = 0;
 	};
 
 	/// <summary>

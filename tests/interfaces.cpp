@@ -120,3 +120,35 @@ TEST(Interfaces, Demandant)
 	dt.set(22);
 	ASSERT_TRUE(dt.i_, 22);
 }
+
+class Functor_test : public Functor<std::string, int, float, char>
+{
+public:
+	std::string operator()(int i, float f, char c) override { return c + std::to_string(i + f); }
+};
+
+TEST(Interfaces, Functor)
+{
+	Functor_test ft;
+
+	auto str = ft(2, 5.5, 'a');
+	ASSERT_EQ(str, "a7.500000");
+}
+
+class Functor_source_test : public Functor<int>
+{
+	int i = 2;
+public:
+	int operator()() override { return i--; }
+	bool is_active() const override { return i > 0; }
+};
+
+TEST(Interfaces, Functor_source)
+{
+	Functor_source_test fst;
+
+	ASSERT_TRUE(fst.is_active());
+	ASSERT_EQ(fst(), 2);
+	ASSERT_EQ(fst(), 1);
+	ASSERT_FALSE(fst.is_active());
+}

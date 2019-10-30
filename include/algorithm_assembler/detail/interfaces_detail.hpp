@@ -22,6 +22,10 @@ Copyright 2019 Ilia S. Kovalev
 
 namespace algorithm_assembler::detail
 {
+	class Functor {};
+
+
+
 	class Generator {};
 
 	template<Updating_policy> class Generatating_policy {};
@@ -151,8 +155,6 @@ namespace algorithm_assembler::detail
 
 
 
-
-	class Functor {};
 
 
 
