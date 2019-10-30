@@ -69,9 +69,9 @@ namespace algorithm_assembler
 	{
 	public:
 		// Macros to add in inherited classes before overriding virtual methods.
-		#define AA_GENERATES template <typename T_>  T_ get();
-		#define AA_GENERATES_SOMETIMES  template <typename T_>  T_ get(); \
-										template <typename> bool has_new_data();
+		#define AA_GENERATES template <typename T_>  T_ get() const;
+		#define AA_GENERATES_SOMETIMES  template <typename T_>  T_ get() const; \
+										template <typename> bool has_new_data() const;
 
 		template<Updating_policy UP>
 		using generates_types = typelist::Typelist<T, Ts...>;
@@ -88,7 +88,7 @@ namespace algorithm_assembler
 	{
 	public:
 		// Macros to add in inherited classes before overriding virtual methods.
-		#define AA_TRANSFORMS_SOMETIMES template<typename> bool transformation_changed();
+		#define AA_TRANSFORMS_SOMETIMES template<typename> bool transformation_changed() const;
 
 		template<Updating_policy UP>
 		using transforms_types = typelist::Typelist<T, Ts...>;

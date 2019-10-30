@@ -27,12 +27,12 @@ class Generator_Test :
 public:
 	AA_GENERATES_SOMETIMES;
 
-	template<> int get<int>() override { return 5; }
-	template<> float get<float>() override { return 5.5; }
-	template<> bool get<bool>() override { return true; }
-	template<> double get<double>() override { return -2.6; }
+	template<> int get<int>() const override { return 5; }
+	template<> float get<float>() const override { return 5.5; }
+	template<> bool get<bool>() const override { return true; }
+	template<> double get<double>() const override { return -2.6; }
 
-	template<> bool has_new_data<double>() override { return false; }
+	template<> bool has_new_data<double>() const override { return false; }
 };
 
 TEST(Interfaces, Generator)
@@ -55,12 +55,12 @@ class Transformer_test :
 public:
 	AA_TRANSFORMS_SOMETIMES;
 
-	void transform(int& in) override { in += 10; }
-	void transform(double& in) override { in *= 2; }
-	void transform(float& in) override { in *= 3; }
+	void transform(int& in) const override { in += 10; }
+	void transform(double& in) const override { in *= 2; }
+	void transform(float& in) const override { in *= 3; }
 
-	template<> bool transformation_changed<double>() override { return true; }
-	template<> bool transformation_changed<float>() override { return false; }
+	template<> bool transformation_changed<double>() const override { return true; }
+	template<> bool transformation_changed<float>() const override { return false; }
 };
 
 TEST(Interfaces, Transformer)

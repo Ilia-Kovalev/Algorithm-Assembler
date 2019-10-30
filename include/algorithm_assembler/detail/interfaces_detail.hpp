@@ -29,16 +29,13 @@ namespace algorithm_assembler::detail
 	template<typename T> class Generates_type
 	{
 	public:
+		template<typename T_> T_ get() const;
 
-		template<typename T_> bool has_new_data();
 
 		/// <summary>
-		/// Indicator of new data in a module.
+		/// Method to get generated data of specified type.
 		/// </summary>
-		/// <returns>
-		///   <c>true</c> if a module has new data; otherwise, <c>false</c>.
-		/// </returns>
-		template<> virtual bool has_new_data<T>();
+		template<> virtual T get<T>() const;
 	};
 
 	template<Updating_policy UP, typename T> class Generates :
@@ -52,7 +49,19 @@ namespace algorithm_assembler::detail
 		virtual public Generator,
 		virtual public Generatating_policy<Updating_policy::sometimes>,
 		public Generates_type<T>
-	{};
+	{
+	public:
+
+		template<typename T_> bool has_new_data() const;
+
+		/// <summary>
+		/// Indicator of new data in a module.
+		/// </summary>
+		/// <returns>
+		///   <c>true</c> if a module has new data; otherwise, <c>false</c>.
+		/// </returns>
+		template<> virtual bool has_new_data<T>() const;
+	};
 
 
 
@@ -67,7 +76,7 @@ namespace algorithm_assembler::detail
 		/// <summary>
 		/// Transforms referenced value.
 		/// </summary>
-		virtual void transform(T& data) = 0;
+		virtual void transform(T& data) const = 0;
 	};
 
 	template<Updating_policy UP, typename T> class Transforms :
@@ -82,13 +91,13 @@ namespace algorithm_assembler::detail
 		public Transforms_type<T>
 	{
 	public:
-		template<typename T_> bool transformation_changed();
+		template<typename T_> bool transformation_changed() const;
 
 		/// <summary>
 		/// Indicates if transformations was changed.
 		/// </summary>
 		/// <returns></returns>
-		template<> virtual bool transformation_changed<T>();
+		template<> virtual bool transformation_changed<T>() const;
 	};
 
 
