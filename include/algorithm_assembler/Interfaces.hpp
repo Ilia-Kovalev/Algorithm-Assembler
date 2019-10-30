@@ -95,24 +95,11 @@ namespace algorithm_assembler
 	};
 
 
-	namespace detail
-	{
-		template<typename T>
-		class Demandands : virtual Demandant
-		{
-		public:
-			/// <summary>
-			/// Sets specified value.
-			/// </summary>
-			virtual void set(const T& in) = 0;
-		};
-	}
-
 	/// <summary>
-	/// Interface for modules requiring auxiliary data. Template arguments specify required data types.
+	/// Interface for modules requiring auxiliary data.
 	/// </summary>
 	template<typename T, typename... Ts>
-	class Demandands :
+	class Demands :
 		public detail::Demandands<T>,
 		public detail::Demandands<Ts>...
 	{

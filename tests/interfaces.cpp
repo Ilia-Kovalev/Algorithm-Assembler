@@ -82,3 +82,30 @@ TEST(Interfaces, Transformer)
 	ASSERT_TRUE(tt.transformation_changed<double>());
 	ASSERT_FALSE(tt.transformation_changed<float>());
 }
+
+
+class Demadnand_test : public Demands<bool, float, int>
+{
+public:
+	bool b_;
+	float f_;
+	int i_;
+
+	void set(const bool& b) override { b_ = b; }
+	void set(const float& f) override { f_ = f; }
+	void set(const int& i) override { i_ = i; }
+};
+
+TEST(Interfaces, Demandant)
+{
+	Demadnand_test dt;
+
+	dt.set(true);
+	ASSERT_TRUE(dt.b_, true);
+
+	dt.set(15.f);
+	ASSERT_TRUE(dt.f_, 15.f);
+
+	dt.set(22);
+	ASSERT_TRUE(dt.i_, 22);
+}

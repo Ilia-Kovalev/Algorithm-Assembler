@@ -92,11 +92,27 @@ namespace algorithm_assembler::detail
 	};
 
 
+
+	class Demandant {};
+
+	template<typename T>
+	class Demandands : virtual public Demandant
+	{
+	public:
+		/// <summary>
+		/// Sets specified value.
+		/// </summary>
+		virtual void set(const T& in) = 0;
+	};
+
+
+
+
 	class Functor {};
 
 	class Uses_settings {};
 
-	class Demandant {};
+
 }
 
 #endif
