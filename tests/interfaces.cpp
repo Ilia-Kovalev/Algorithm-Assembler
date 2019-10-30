@@ -14,39 +14,39 @@ Copyright 2019 Ilia S. Kovalev
    limitations under the License.
 */
 
-#include <iostream>
-#include <cassert>
+#include "pch.h"
 
-#include "algorithm_assembler/Interfaces.hpp"
+#include <algorithm_assembler/interfaces.hpp>
 
-namespace interfaces 
+using namespace algorithm_assembler::typelist;
+
+
+using namespace algorithm_assembler;
+
+class Generator_Test :
+	public Generates<Updating_policy::always, int, float, bool>,
+	public Generates<Updating_policy::sometimes, double>
 {
-	using namespace algorithm_assembler;
+public:
+	AA_GENERATES_SOMETIMES
 
-	class Generator_Test : 
-		public Generates<Updating_policy::always, int, float, bool>,
-		public Generates<Updating_policy::sometimes, double>
-	{
-	public:
-		template <typename T>  T get();
-		template <typename T>  bool has_new_data();
+	template<> int get<int>() { return 5; }
+	template<> float get<float>() { return 5.5; }
+	template<> bool get<bool>() { return true; }
+	template<> double get<double>() { return -2.6; }
+	template<> bool has_new_data<double>() override { return false; }
+};
 
-		template<> int get<int>() { return 5; }
-		template<> float get<float>() { return 5.5; }
-		template<> bool get<bool>() { return true; }
-		template<> double get<double>() { return -2.6; }
-		template<> bool has_new_data<double>() override { return false; }
-	};
+TEST(Interfaces, Generator)
+{
+	Generator_Test gt;
 
-	void generator()
-	{
-		Generator_Test gt;
+	ASSERT_EQ(gt.get<int>(), 5);
+	ASSERT_EQ(gt.get<float>(), 5.5);
+	ASSERT_EQ(gt.get<bool>(), true);
+	ASSERT_EQ(gt.get<double>(), -2.6);
 
-		assert(gt.get<int>() == 5);
-		assert(gt.get<float>() == 5.5);
-		assert(gt.get<bool>() == true);
-		assert(gt.get<double>() == -2.6);
-
-		assert(gt.has_new_data<double>() == false);
-	}
+	ASSERT_FALSE(gt.has_new_data<double>());
 }
+
+

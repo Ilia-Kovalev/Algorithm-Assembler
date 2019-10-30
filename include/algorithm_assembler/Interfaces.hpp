@@ -85,6 +85,7 @@ namespace algorithm_assembler
 		/// </summary>
 		virtual void transform(T& in) const = 0;
 
+
 		virtual bool transformation_changed() const = 0;
 	};
 
@@ -121,6 +122,10 @@ namespace algorithm_assembler
 	{
 		using demanded_types = typelist::Typelist<T, Ts...>;
 	};
+
+#define AA_GENERATES template <typename T>  T get();
+#define AA_GENERATES_SOMETIMES  template <typename T>  T get(); \
+								template <typename T>  bool has_new_data();
 
 	/// <summary>
 	/// Interface for modules generating auxiliary data.

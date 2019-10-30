@@ -126,15 +126,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="tests\interfaces.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="tests\main.cpp" />
-    <ClCompile Include="tests\typelist.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="include\algorithm_assembler\data_processor.hpp" />
     <ClInclude Include="include\algorithm_assembler\detail\heterogeneous_container_functions.hpp" />
     <ClInclude Include="include\algorithm_assembler\detail\interfaces_detail.hpp" />

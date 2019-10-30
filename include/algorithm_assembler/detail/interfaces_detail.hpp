@@ -22,27 +22,11 @@ Copyright 2019 Ilia S. Kovalev
 
 namespace algorithm_assembler::detail
 {
-	class Functor {};
-
-	class Uses_settings {};
-
-	class Demandant {};
-
 	class Generator {};
-	template<Updating_policy> class Generatating_policy : virtual public Generator {};
-	template<typename T> class Generates_type : virtual public Generator {};
 
-	template<Updating_policy UP, typename T> class Generates :
-		virtual public Generator,
-		virtual public Generatating_policy<UP>,
-		public Generates_type<T>
-	{
-	};
+	template<Updating_policy> class Generatating_policy {};
 
-	template<typename T> class Generates<Updating_policy::sometimes, T> :
-		virtual public Generator,
-		virtual public Generatating_policy<Updating_policy::sometimes>,
-		public Generates_type<T>
+	template<typename T> class Generates_type
 	{
 	public:
 
@@ -54,9 +38,53 @@ namespace algorithm_assembler::detail
 		/// <returns>
 		///   <c>true</c> if a module has new data; otherwise, <c>false</c>.
 		/// </returns>
-		template<>
-		virtual bool has_new_data<T>();
+		template<> virtual bool has_new_data<T>();
 	};
+
+	template<Updating_policy UP, typename T> class Generates :
+		virtual public Generator,
+		virtual public Generatating_policy<UP>,
+		virtual public Generates_type<T>
+	{
+	};
+
+	template<typename T> class Generates<Updating_policy::sometimes, T> :
+		virtual public Generator,
+		virtual public Generatating_policy<Updating_policy::sometimes>,
+		public Generates_type<T>
+	{};
+
+
+
+
+	class Transformer {};
+
+	template<Updating_policy> class Transformation_policy {};
+
+	template<typename T> class Transforms_type
+	{
+	public:
+		/// <summary>
+		/// Transforms the specified auxiliary data.
+		/// </summary>
+		/// <param name="data">The data for transformation.</param>
+		virtual void transform(T& data) = 0;
+	};
+
+	template<Updating_policy UP, typename T> class Transforms :
+		virtual public Transformer,
+		virtual public Transformation_policy<UP>,
+		public Transforms_type<T>
+	{};
+
+
+
+
+	class Functor {};
+
+	class Uses_settings {};
+
+	class Demandant {};
 }
 
 #endif

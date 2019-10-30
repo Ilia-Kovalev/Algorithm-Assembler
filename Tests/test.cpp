@@ -14,20 +14,9 @@ Copyright 2019 Ilia S. Kovalev
    limitations under the License.
 */
 
-#include <iostream>
+#include "pch.h"
 
-#include "typelist.cpp"
-#include "interfaces.cpp"
-
-using namespace std;
-
-int main() 
-{
-	typelist::test();
-	interfaces::generator();
-
-	cout << "All tests passed.\n";
-
-	system("pause");
-	return 0;
+TEST(TestCaseName, TestName) {
+  EXPECT_EQ(1, 1);
+  EXPECT_TRUE(true);
 }
