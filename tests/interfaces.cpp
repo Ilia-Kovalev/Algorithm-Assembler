@@ -31,6 +31,7 @@ public:
 	template<> float get<float>() override { return 5.5; }
 	template<> bool get<bool>() override { return true; }
 	template<> double get<double>() override { return -2.6; }
+
 	template<> bool has_new_data<double>() override { return false; }
 };
 
