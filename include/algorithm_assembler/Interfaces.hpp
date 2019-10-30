@@ -30,8 +30,8 @@ namespace algorithm_assembler
 	class Functor : detail::Functor
 	{
 	public:
-		using Output = Output_;
-		using Inputs = typelist::Typelist<Inputs_...>;
+		using Output_type = Output_;
+		using Input_types = typelist::Typelist<Inputs_...>;
 
 		/// <summary>
 		/// Processes input data.
@@ -42,7 +42,7 @@ namespace algorithm_assembler
 	};
 
 	/// <summary>
-	/// Specialisation for functor without inputs.
+	/// Specialisation for functor without inputs (data source).
 	/// </summary>
 	template<typename Output_>
 	class Functor<Output_> : detail::Functor
@@ -68,9 +68,10 @@ namespace algorithm_assembler
 		public detail::Generates<UP, Ts>...
 	{
 	public:
-		// Macros to add in inherited classes before overriding virtual methods.
-		#define AA_GENERATES template <typename T_>  T_ get() const;
-		#define AA_GENERATES_SOMETIMES  template <typename T_>  T_ get() const; \
+		// Macros are necessary to add in inherited classes before overriding virtual methods. If updating policies of derived class "never" and "sometimes" use only AA_GENERATES_SOMETIMES.
+		#define AA_GENERATES_ALWAYS template <typename T_>  T_ get();
+		#define AA_GENERATES_NEVER template <typename T_>  T_ get() const;
+		#define AA_GENERATES_SOMETIMES  template <typename T_>  T_ get(); \
 										template <typename> bool has_new_data() const;
 
 		template<Updating_policy UP>
@@ -87,7 +88,7 @@ namespace algorithm_assembler
 		public detail::Transforms<UP, Ts>...
 	{
 	public:
-		// Macros to add in inherited classes before overriding virtual methods.
+		// Macros are necessary to add in inherited classes before overriding virtual methods.
 		#define AA_TRANSFORMS_SOMETIMES template<typename> bool transformation_changed() const;
 
 		template<Updating_policy UP>

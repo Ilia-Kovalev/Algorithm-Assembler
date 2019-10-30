@@ -22,16 +22,19 @@ using namespace algorithm_assembler;
 
 class Generator_Test :
 	public Generates<Updating_policy::always, int, float, bool>,
-	public Generates<Updating_policy::sometimes, double>
+	public Generates<Updating_policy::sometimes, double>,
+	public Generates<Updating_policy::never, char>
 {
 public:
 	AA_GENERATES_SOMETIMES;
+	AA_GENERATES_NEVER;
 
-	template<> int get<int>() const override { return 5; }
-	template<> float get<float>() const override { return 5.5; }
-	template<> bool get<bool>() const override { return true; }
-	template<> double get<double>() const override { return -2.6; }
-
+	template<> int get<int>() override { return 5; }
+	template<> float get<float>() override { return 5.5; }
+	template<> bool get<bool>() override { return true; }
+	template<> double get<double>() override { return -2.6; }
+	template<> char get<char>() override { return 'a'; }
+	
 	template<> bool has_new_data<double>() const override { return false; }
 };
 
@@ -43,6 +46,7 @@ TEST(Interfaces, Generator)
 	ASSERT_EQ(gt.get<float>(), 5.5);
 	ASSERT_EQ(gt.get<bool>(), true);
 	ASSERT_EQ(gt.get<double>(), -2.6);
+	ASSERT_EQ(gt.get<char>(), 'a');
 
 	ASSERT_FALSE(gt.has_new_data<double>());
 }
@@ -50,14 +54,17 @@ TEST(Interfaces, Generator)
 
 class Transformer_test :
 	public Transforms<Updating_policy::never, int>,
-	public Transforms<Updating_policy::sometimes, double, float>
+	public Transforms<Updating_policy::sometimes, double, float>,
+	public Transforms<Updating_policy::always, char>
 {
 public:
 	AA_TRANSFORMS_SOMETIMES;
 
 	void transform(int& in) const override { in += 10; }
-	void transform(double& in) const override { in *= 2; }
-	void transform(float& in) const override { in *= 3; }
+	void transform(double& in)  override { in *= 2; }
+	void transform(float& in)  override { in *= 3; }
+	void transform(char& in) override { in = 'b'; }
+
 
 	template<> bool transformation_changed<double>() const override { return true; }
 	template<> bool transformation_changed<float>() const override { return false; }
@@ -78,6 +85,10 @@ TEST(Interfaces, Transformer)
 	float f = 15;
 	tt.transform(f);
 	ASSERT_EQ(f, 45);
+
+	char c = 'a';
+	tt.transform(c);
+	ASSERT_EQ(c, 'b');
 
 	ASSERT_TRUE(tt.transformation_changed<double>());
 	ASSERT_FALSE(tt.transformation_changed<float>());
