@@ -14,7 +14,6 @@ Copyright 2019 Ilia S. Kovalev
    limitations under the License.
 */
 
-
 #ifndef INTERFACES_HPP
 #define INTERFACES_HPP
 
@@ -61,41 +60,38 @@ namespace algorithm_assembler
 	};
 
 	/// <summary>
-	/// Interface for modules transforming auxiliary data. Template arguments specify updating policy and transformed types.
+	/// Interface for modules generating auxiliary data.
 	/// </summary>
-	template<Updating_policy, typename, typename...>
-	class Transforms;
-
-	template<Updating_policy UP, typename T>
-	class Transforms<UP, T>
+	template<Updating_policy UP, typename T, typename... Ts>
+	class Generates :
+		public detail::Generates<UP, T>,
+		public detail::Generates<UP, Ts>...
 	{
 	public:
-		/// <summary>
-		/// Transforms referenced value.
-		/// </summary>
-		virtual void transform(T& in) const = 0;
+		// Macros to add in inherited classes before overriding virtual methods.
+		#define AA_GENERATES template <typename T_>  T_ get();
+		#define AA_GENERATES_SOMETIMES  template <typename T_>  T_ get(); \
+										template <typename> bool has_new_data();
+
+		template<Updating_policy UP>
+		using generates_types = typelist::Typelist<T, Ts...>;
 	};
 
-	template<typename T>
-	class Transforms <Updating_policy::sometimes, T>
-	{
-	public:
-		/// <summary>
-		/// Transforms referenced value.
-		/// </summary>
-		virtual void transform(T& in) const = 0;
 
-
-		virtual bool transformation_changed() const = 0;
-	};
-
+	/// <summary>
+	/// Interface for modules transforming auxiliary data.
+	/// </summary>
 	template<Updating_policy UP, typename T, typename... Ts>
 	class Transforms:
-		public Transforms<UP, T>,
-		public Transforms<UP, Ts>...
+		public detail::Transforms<UP, T>,
+		public detail::Transforms<UP, Ts>...
 	{
+	public:
+		// Macros to add in inherited classes before overriding virtual methods.
+		#define AA_TRANSFORMS_SOMETIMES template<typename> bool transformation_changed();
+
 		template<Updating_policy UP>
-		using transformed_types = typelist::Typelist<T, Ts...>;
+		using transforms_types = typelist::Typelist<T, Ts...>;
 	};
 
 
@@ -123,22 +119,7 @@ namespace algorithm_assembler
 		using demanded_types = typelist::Typelist<T, Ts...>;
 	};
 
-#define AA_GENERATES template <typename T>  T get();
-#define AA_GENERATES_SOMETIMES  template <typename T>  T get(); \
-								template <typename T>  bool has_new_data();
 
-	/// <summary>
-	/// Interface for modules generating auxiliary data.
-	/// </summary>
-	template<Updating_policy UP, typename T, typename... Ts>
-	class Generates :
-		public detail::Generates<UP, T>,
-		public detail::Generates<UP, Ts>...
-	{
-	public:
-		template<Updating_policy UP>
-		using generates_types = typelist::Typelist<T, Ts...>;
-	};
 
 
 

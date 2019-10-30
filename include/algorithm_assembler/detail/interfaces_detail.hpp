@@ -65,9 +65,8 @@ namespace algorithm_assembler::detail
 	{
 	public:
 		/// <summary>
-		/// Transforms the specified auxiliary data.
+		/// Transforms referenced value.
 		/// </summary>
-		/// <param name="data">The data for transformation.</param>
 		virtual void transform(T& data) = 0;
 	};
 
@@ -77,7 +76,20 @@ namespace algorithm_assembler::detail
 		public Transforms_type<T>
 	{};
 
+	template<typename T> class Transforms<Updating_policy::sometimes, T> :
+		virtual public Transformer,
+		virtual public Transformation_policy<Updating_policy::sometimes>,
+		public Transforms_type<T>
+	{
+	public:
+		template<typename T_> bool transformation_changed();
 
+		/// <summary>
+		/// Indicates if transformations was changed.
+		/// </summary>
+		/// <returns></returns>
+		template<> virtual bool transformation_changed<T>();
+	};
 
 
 	class Functor {};
