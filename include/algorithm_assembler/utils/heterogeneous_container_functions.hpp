@@ -19,7 +19,7 @@ Copyright 2019 Ilia S. Kovalev
 
 #include <type_traits>
 
-namespace algorithm_assembler::container_functions
+namespace algorithm_assembler::utils
 {
 	template<typename, typename>
 	struct concatenation;

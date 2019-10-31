@@ -1,35 +1,38 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Headers">
-      <UniqueIdentifier>{26c9fa3d-0515-4f24-9862-28dd49073198}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Detail">
+    <Filter Include="Detail">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{0ee97d67-d19f-4ab3-aa01-206946874c59}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\algorithm_assembler\Interfaces.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="include\algorithm_assembler\data_processor.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="include\algorithm_assembler\detail\heterogeneous_container_functions.hpp">
-      <Filter>Headers\Detail</Filter>
-    </ClInclude>
-    <ClInclude Include="include\algorithm_assembler\detail\typelist_functions.hpp">
-      <Filter>Headers\Detail</Filter>
-    </ClInclude>
-    <ClInclude Include="include\algorithm_assembler\detail\typelist.hpp">
-      <Filter>Headers\Detail</Filter>
-    </ClInclude>
-    <ClInclude Include="include\algorithm_assembler\enums.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="include\algorithm_assembler\detail\interfaces_detail.hpp">
-      <Filter>Headers\Detail</Filter>
+      <Filter>Detail</Filter>
+    </ClInclude>
+    <ClInclude Include="include\algorithm_assembler\detail\data_processor_detail.hpp">
+      <Filter>Detail</Filter>
+    </ClInclude>
+    <ClInclude Include="include\algorithm_assembler\data_processor.hpp" />
+    <ClInclude Include="include\algorithm_assembler\enums.hpp" />
+    <ClInclude Include="include\algorithm_assembler\Interfaces.hpp" />
+    <ClInclude Include="include\algorithm_assembler\utils\heterogeneous_container_functions.hpp">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="include\algorithm_assembler\utils\typelist.hpp">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="include\algorithm_assembler\utils\typelist_functions.hpp">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="include\algorithm_assembler\detail\data_processor_funcs.hpp">
+      <Filter>Detail</Filter>
+    </ClInclude>
+    <ClInclude Include="include\algorithm_assembler\utils\tuple.hpp">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

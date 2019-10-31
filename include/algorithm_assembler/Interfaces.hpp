@@ -18,7 +18,7 @@ Copyright 2019 Ilia S. Kovalev
 #define INTERFACES_HPP
 
 #include "enums.hpp"
-#include "detail/typelist.hpp"
+#include "utils/typelist.hpp"
 #include "detail/interfaces_detail.hpp"
 
 namespace algorithm_assembler
@@ -31,7 +31,7 @@ namespace algorithm_assembler
 	{
 	public:
 		using Output_type = Output_;
-		using Input_types = typelist::Typelist<Inputs_...>;
+		using Input_types = utils::Typelist<Inputs_...>;
 
 		/// <summary>
 		/// Processes input data.
@@ -49,7 +49,7 @@ namespace algorithm_assembler
 	{
 	public:
 		using Output_type = Output_;
-		using Input_types = typelist::Typelist<>;
+		using Input_types = utils::Typelist<>;
 
 		virtual Output_type operator()() = 0;
 
@@ -75,7 +75,7 @@ namespace algorithm_assembler
 										template <typename> bool has_new_data() const;
 
 		template<Updating_policy UP>
-		using generates_types = typelist::Typelist<T, Ts...>;
+		using generates_types = utils::Typelist<T, Ts...>;
 	};
 
 
@@ -92,7 +92,7 @@ namespace algorithm_assembler
 		#define AA_TRANSFORMS_SOMETIMES template<typename> bool transformation_changed() const;
 
 		template<Updating_policy UP>
-		using transforms_types = typelist::Typelist<T, Ts...>;
+		using transforms_types = utils::Typelist<T, Ts...>;
 	};
 
 
@@ -104,7 +104,7 @@ namespace algorithm_assembler
 		public detail::Demandands<T>,
 		public detail::Demandands<Ts>...
 	{
-		using demanded_types = typelist::Typelist<T, Ts...>;
+		using demanded_types = utils::Typelist<T, Ts...>;
 	};
 
 
