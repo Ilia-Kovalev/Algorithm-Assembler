@@ -39,6 +39,8 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="data_processor.cpp" />
+    <ClCompile Include="data_processor_funcs.cpp" />
     <ClCompile Include="interfaces.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

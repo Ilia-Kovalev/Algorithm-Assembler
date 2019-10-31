@@ -19,9 +19,9 @@ Copyright 2019 Ilia S. Kovalev
 #include <type_traits>
 #include <tuple>
 
-#include <algorithm_assembler/detail/typelist.hpp>
+#include <algorithm_assembler/utils/typelist.hpp>
 
-using namespace algorithm_assembler::typelist;
+using namespace algorithm_assembler::utils;
 
 constexpr void type()
 {

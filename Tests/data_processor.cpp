@@ -14,20 +14,6 @@ Copyright 2019 Ilia S. Kovalev
    limitations under the License.
 */
 
-#ifndef DATA_PROCESSOR_HPP
-#define DATA_PROCESSOR_HPP
+#include "pch.h"
 
-#include "detail/data_processor_detail.hpp"
-
-namespace algorithm_assembler
-{
-	template<class... Modules>
-	class Data_processor : 
-		public detail::DP_Functor<
-			typename utils::Typelist<Modules...>::head::Input_types,
-			typename utils::Typelist<Modules...>::back::Output_type
-		>
-	{};
-}
-
-#endif
+#include <algorithm_assembler/data_processor.hpp>

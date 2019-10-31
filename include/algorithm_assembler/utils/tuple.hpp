@@ -14,20 +14,21 @@ Copyright 2019 Ilia S. Kovalev
    limitations under the License.
 */
 
-#ifndef DATA_PROCESSOR_HPP
-#define DATA_PROCESSOR_HPP
+#ifndef TUPLE_HPP
+#define TUPLE_HPP
 
-#include "detail/data_processor_detail.hpp"
+#include <tuple>
 
-namespace algorithm_assembler
+namespace algorithm_assembler::utils
 {
-	template<class... Modules>
-	class Data_processor : 
-		public detail::DP_Functor<
-			typename utils::Typelist<Modules...>::head::Input_types,
-			typename utils::Typelist<Modules...>::back::Output_type
-		>
-	{};
+	template <typename T>
+	struct is_tuple : std::false_type {};
+	template <typename... Ts>
+	struct is_tuple<std::tuple<Ts...>> : std::true_type {};
+	template <typename... Ts>
+	struct is_tuple<const std::tuple<Ts...>> : std::true_type {};
+	template<class T>
+	inline constexpr bool is_tuple_v = is_tuple<T>::value;
 }
 
 #endif

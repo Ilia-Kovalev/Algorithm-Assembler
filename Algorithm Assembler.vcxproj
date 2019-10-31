@@ -127,12 +127,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\algorithm_assembler\data_processor.hpp" />
-    <ClInclude Include="include\algorithm_assembler\detail\heterogeneous_container_functions.hpp" />
+    <ClInclude Include="include\algorithm_assembler\detail\data_processor_detail.hpp" />
+    <ClInclude Include="include\algorithm_assembler\detail\data_processor_funcs.hpp" />
     <ClInclude Include="include\algorithm_assembler\detail\interfaces_detail.hpp" />
-    <ClInclude Include="include\algorithm_assembler\detail\typelist_functions.hpp" />
-    <ClInclude Include="include\algorithm_assembler\detail\typelist.hpp" />
     <ClInclude Include="include\algorithm_assembler\enums.hpp" />
     <ClInclude Include="include\algorithm_assembler\Interfaces.hpp" />
+    <ClInclude Include="include\algorithm_assembler\utils\heterogeneous_container_functions.hpp" />
+    <ClInclude Include="include\algorithm_assembler\utils\tuple.hpp" />
+    <ClInclude Include="include\algorithm_assembler\utils\typelist.hpp" />
+    <ClInclude Include="include\algorithm_assembler\utils\typelist_functions.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

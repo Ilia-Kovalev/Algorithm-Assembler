@@ -8,6 +8,12 @@
     <ClCompile Include="interfaces.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
+    <ClCompile Include="data_processor.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="data_processor_funcs.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -16,5 +22,8 @@
     <Filter Include="Tests">
       <UniqueIdentifier>{712b5faa-a959-4e28-acc8-56f51263157c}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

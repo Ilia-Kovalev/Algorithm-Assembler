@@ -21,14 +21,14 @@ Copyright 2019 Ilia S. Kovalev
 #include "heterogeneous_container_functions.hpp"
 #include "typelist.hpp"
 
-namespace algorithm_assembler::typelist
+namespace algorithm_assembler::utils
 {
 	template<typename... Ts>
 	struct Typelist;
 }
 
 
-namespace algorithm_assembler::typelist::detail
+namespace algorithm_assembler::utils
 {
 	template<class Node, typename...>
 	struct to_nested_containers;
@@ -37,7 +37,7 @@ namespace algorithm_assembler::typelist::detail
 	struct to_nested_containers<Node<>, T, Ts...>
 	{
 		using tail = typename to_nested_containers<Node<>, Ts...>::node;
-		using node = container_functions::concatenation_t<Node<T>, tail>;
+		using node = concatenation_t<Node<T>, tail>;
 	};
 
 	template<template<typename...> class Node, typename... Ts, typename... Listed_types>
@@ -45,7 +45,7 @@ namespace algorithm_assembler::typelist::detail
 	{
 		using tree_from_listed = typename to_nested_containers<Node<>, Listed_types...>::node;
 		using tail = typename to_nested_containers<Node<>, Ts...>::node;
-		using node = container_functions::concatenation_t<Node<tree_from_listed>, tail>;
+		using node = concatenation_t<Node<tree_from_listed>, tail>;
 	};
 
 	template<template<typename...> class Node>
@@ -73,7 +73,7 @@ namespace algorithm_assembler::typelist::detail
 	template<typename H, typename... T>
 	struct flatten<Typelist<H, T...>>
 	{
-		using type = container_functions::concatenation_t<
+		using type = concatenation_t<
 			Typelist<H>,
 			flatten_t<Typelist<T...>>
 		>;
@@ -84,7 +84,7 @@ namespace algorithm_assembler::typelist::detail
 		Typelist<Ts...>, T...>
 	>
 	{
-		using type = container_functions::concatenation_t<
+		using type = concatenation_t<
 			flatten_t< Typelist<Ts...>>,
 			flatten_t< Typelist<T...>>
 		>;
