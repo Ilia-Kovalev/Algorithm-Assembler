@@ -53,18 +53,6 @@ TEST(Test, Test_object)
 }
 
 
-template<typename T, int N>
-bool operator==(const Test_data<T, N>& td, const T& d)
-{
-	return td.data == d;
-}
-
-template<typename T, int N>
-bool operator==(const T& d, const Test_data<T, N>& td)
-{
-	return td == d;
-}
-
 TEST(Data_processor_functions, process_though_functor_one_copy)
 {
 	reset_counters<0>();

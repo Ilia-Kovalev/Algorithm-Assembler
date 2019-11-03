@@ -68,5 +68,17 @@ struct Test_data : public Test_object<N>
 	Test_data(const T& d) : Test_object<N>(0) { data = d; }
 };
 
+template<typename T, int N>
+bool operator==(const Test_data<T, N>& td, const T& d)
+{
+	return td.data == d;
+}
+
+template<typename T, int N>
+bool operator==(const T& d, const Test_data<T, N>& td)
+{
+	return td == d;
+}
+
 
 #endif
