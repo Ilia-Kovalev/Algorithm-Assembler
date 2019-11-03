@@ -43,13 +43,12 @@ namespace algorithm_assembler::detail
 	public:
 		inline Out_type operator()(In_types... ins) override
 		{
-			auto ins_tuple = std::forward_as_tuple(ins...);
+			auto ins_tuple&& = std::forward_as_tuple(ins...);
 
-			auto&& result = std::apply([&ins_tuple](auto&... args) {
-				return process_data(ins_tuple, args...);
-			}, modules_);
-
-
+			return process_data(
+				std::forward<std::tuple<In_types...>>(ins_tuple), 
+				std::get<Modules>(modules_)...
+			);
 		}
 	};
 

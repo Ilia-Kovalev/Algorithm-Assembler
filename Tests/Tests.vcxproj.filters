@@ -17,10 +17,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
+    <ClInclude Include="test_objects.hpp">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Tests">
       <UniqueIdentifier>{712b5faa-a959-4e28-acc8-56f51263157c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{d4a31486-d998-42c0-9248-e7cab63e4b85}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
