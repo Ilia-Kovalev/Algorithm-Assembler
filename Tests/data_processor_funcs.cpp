@@ -240,24 +240,24 @@ TEST(Data_processor_functions, process_though_functor_in_tuple)
 
 	struct Test_functor : public aa::Functor<string, 
 		Test_data<string, 0>, 
-		Test_data<string, 1>&&, 
+		const Test_data<string, 3> &,
 		Test_data<string, 2>&,
-		const Test_data<string, 3>&
+		Test_data<string, 1>&&
 	>
 	{
 		string operator()(
 			Test_data<string, 0> t0,
-			Test_data<string, 1>&& t1,
+			const Test_data<string, 3>& t1,
 			Test_data<string, 2>& t2,
-			const Test_data<string, 3>& t3
+			Test_data<string, 1>&& t3
 			) override
 		{
-			auto&& n1 = Test_data<string, 1>(move(t1));
+			auto&& n3 = Test_data<string, 1>(move(t3));
 			auto result = 
 				t0.data + ' '
-				+ n1.data + ' '
+				+ t1.data + ' '
 				+ t2.data + ' '
-				+ t3.data;
+				+ n3.data;
 			t2.data += " got"s;
 			return result;
 		}
@@ -286,7 +286,7 @@ TEST(Data_processor_functions, process_though_functor_in_tuple)
 		);
 
 
-	ASSERT_EQ(out, "In0 In1 In2 In3"s);
+	ASSERT_EQ(out, "In0 In3 In2 In1"s);
 
 	ASSERT_EQ(in0, "In0"s);
 	ASSERT_EQ(in1, "Moved"s);

@@ -34,16 +34,12 @@ namespace algorithm_assembler::detail
 		utils::Typelist<F_ins...>&&
 	) -> typename F::Output_type
 	{
-		using In_tuple = std::tuple<Inputs&&...>;
+		using In_tuple = std::tuple<Inputs...>;
 
-		auto functor_call = [&f](auto&&... args) 
-		{ 
-			return f(std::forward<std::remove_reference_t<F_ins>>(args)...); 
-		};
-
-		return std::apply(
-			functor_call,
-			std::forward_as_tuple(std::get<F_ins>(in_tuple)...)
+		return f(std::forward<std::remove_reference_t<F_ins>>(
+			std::get<F_ins>(
+				std::forward<In_tuple>(in_tuple)
+				))...
 		);
 	}
 
