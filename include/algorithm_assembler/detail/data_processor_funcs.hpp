@@ -61,33 +61,40 @@ namespace algorithm_assembler::detail
 	}
 
 	template<class F, class... Fs>
-	inline auto process_data(F& f, Fs&... tail)
+	inline auto process_data(F& f, Fs&... tail) 
+		-> typename utils::Typelist<F, Fs...>::back::Output_type
 	{
+		// TODO Replace by auxiliary data
+		int aux = 0;
+
 		if constexpr (sizeof...(tail) > 0)
-			return process_data(f(), tail...);
+			return process_data(f(), aux, tail...);
 		else
 			return f();
 	}
 
-	template<typename Input, class F, class... Fs, 
+	template<typename Input, typename Auxiliary, class F, class... Fs,
 		typename = std::enable_if_t<!std::is_base_of_v<Functor, std::remove_reference_t<Input>>>
 	>
-	inline auto process_data(Input&& in, F& f, Fs&... tail)
+	inline auto process_data(Input&& in, Auxiliary&& aux, F& f, Fs&... tail) 
+		-> typename utils::Typelist<F, Fs...>::back::Output_type
 	{
-		auto result = [&f, &in]()
-		{
-			if constexpr (utils::is_tuple_v<std::remove_reference_t<Input>>)
-				return process_though_functor(f, std::forward<Input>(in), F::Input_types{});
-			else
-				return process_though_functor(f, std::forward<Input>(in));
-		};
+		bool constexpr is_end = sizeof...(tail) == 0;
+		bool constexpr is_input_tuple = utils::is_tuple_v<std::remove_reference_t<Input>>;
 
-		if constexpr (sizeof...(tail) > 0)
-			return process_data(result(), tail...);
+		if constexpr (!is_end && is_input_tuple)
+			return process_data(
+				process_though_functor(f, std::forward<Input>(in), F::Input_types{}),
+				aux, tail...);
+		else if constexpr (!is_end && !is_input_tuple)
+			return process_data(
+				process_though_functor(f, std::forward<Input>(in)),
+				aux, tail...);
+		else if constexpr (is_end && is_input_tuple)
+			return process_though_functor(f, std::forward<Input>(in), F::Input_types{});
 		else
-			return result();
+			return process_though_functor(f, std::forward<Input>(in));
 	}
-
 }
 
 #endif

@@ -21,11 +21,12 @@ Copyright 2019 Ilia S. Kovalev
 
 namespace algorithm_assembler
 {
-	template<class... Modules>
+	template<class Module, class... Modules>
 	class Data_processor : 
 		public detail::DP_Functor<
-			typename utils::Typelist<Modules...>::head::Input_types,
-			typename utils::Typelist<Modules...>::back::Output_type
+			typename Module::Input_types,
+			typename utils::Typelist<Module, Modules...>::back::Output_type,
+			utils::Typelist<Module, Modules...>
 		>
 	{};
 }

@@ -26,38 +26,44 @@ namespace algorithm_assembler
 	/// <summary>
 	/// Interface for modules of main processing pipeline.
 	/// </summary>
-	template<typename Output_, typename... Inputs_>
-	class Functor : public detail::Functor
+	template<typename Output, typename... Inputs> class Functor;
+
+	/// <summary>
+	/// Specialisation for functor with inputs.
+	/// </summary>
+	template<typename Output, typename Input, typename... Inputs>
+	class Functor<Output, Input, Inputs...> : public detail::Functor
 	{
 	public:
-		using Output_type = Output_;
-		using Input_types = utils::Typelist<Inputs_...>;
+		using Output_type = Output;
+		using Input_types = utils::Typelist<Input, Inputs...>;
 
 		/// <summary>
 		/// Processes input data.
 		/// </summary>
 		/// <param name="...ins">One or multiple input arguments.</param>
 		/// <returns>Result of input processing.</returns>
-		virtual Output_ operator()(Inputs_... ins) = 0;
+		virtual Output operator()(Input in, Inputs... ins) = 0;
 	};
 
 	/// <summary>
 	/// Specialisation for functor without inputs (data source).
 	/// </summary>
-	template<typename Output_>
-	class Functor<Output_> : public detail::Functor
+	template<typename Output>
+	class Functor<Output> : public detail::Functor
 	{
 	public:
-		using Output_type = Output_;
+		using Output_type = Output;
 		using Input_types = utils::Typelist<>;
 
-		virtual Output_type operator()() = 0;
+		virtual Output operator()() = 0;
 
 		/// <summary>
 		/// Should return true, if module is able to return data.
 		/// </summary>
 		virtual bool is_active() const = 0;
 	};
+
 
 	/// <summary>
 	/// Interface for modules generating auxiliary data.
