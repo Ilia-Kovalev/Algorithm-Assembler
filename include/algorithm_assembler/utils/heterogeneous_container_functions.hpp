@@ -21,8 +21,14 @@ Copyright 2019 Ilia S. Kovalev
 
 namespace algorithm_assembler::utils
 {
-	template<typename, typename>
+	template<class... Containers>
 	struct concatenation;
+
+	template<typename... Ts1, typename... Ts2, template<typename...> class C, class C3, class... Containers>
+	struct concatenation<C<Ts1...>, C<Ts2...>, C3, Containers...>
+	{
+		using type = typename concatenation<C<Ts1..., Ts2...>, C3, Containers...>::type;
+	};
 
 	template<typename... Ts1, typename... Ts2, template<typename...> class C>
 	struct concatenation<C<Ts1...>, C<Ts2...>>
@@ -30,8 +36,14 @@ namespace algorithm_assembler::utils
 		using type = C<Ts1..., Ts2...>;
 	};
 
-	template<typename T1, typename T2>
-	using concatenation_t = typename concatenation<T1, T2>::type;
+	template<class Container>
+	struct concatenation<Container>
+	{
+		using type = Container;
+	};
+
+	template<class... Containers>
+	using concatenation_t = typename concatenation<Containers...>::type;
 
 
 	template<typename Container, size_t Index>
@@ -224,6 +236,67 @@ namespace algorithm_assembler::utils
 	{
 		using type = drop_while_type_t<Container<T...>, Type>;
 	};
+
+
+	template<class Intersection, class Container1, class Container2, typename = void> struct intersection_impl;
+
+	template<
+		class Intersection,
+		template<typename...> class Container1,
+		typename H, typename... Ts,
+		class Container2
+	>
+		struct intersection_impl<Intersection, Container1<H, Ts...>, Container2, 
+
+		std::enable_if_t<contains_v<Container2, H>>
+		>
+	{
+		using type = typename intersection_impl<push_back_t<Intersection, H>, Container1<Ts...>, Container2>::type;
+	};
+
+	template<
+		class Intersection,
+		template<typename...> class Container1,
+		typename H, typename... Ts,
+		class Container2
+	>
+		struct intersection_impl<Intersection, Container1<H, Ts...>, Container2,
+
+		std::enable_if_t<!contains_v<Container2, H>>
+		>
+	{
+		using type = typename intersection_impl<Intersection, Container1<Ts...>, Container2>::type;
+	};
+
+	template<
+		class Intersection,
+		template<typename...> class Container1,
+		class Container2
+	>
+		struct intersection_impl<Intersection, Container1<>, Container2
+		>
+	{
+		using type = typename Intersection;
+	};
+
+
+	template<class Container, class... Containers> struct intersection;
+
+	template<template<typename...> class Container1, class Container2, class... Containers, typename... Ts>
+	struct intersection<Container1<Ts...>, Container2, Containers...>
+	{
+		using current_intersection = typename intersection_impl<Container1<>, Container1<Ts...>, Container2>::type;
+		using type = typename intersection<current_intersection, Containers...>::type;
+	};
+
+	template<class Container>
+	struct intersection<Container>
+	{
+		using type = Container;
+	};
+	
+	template<class Container, class... Containers>
+	using intersection_t = typename intersection<unique_t<Container>, Containers...>::type;
 }
 
 

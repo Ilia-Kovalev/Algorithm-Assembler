@@ -40,6 +40,7 @@
     <ClInclude Include="test_objects.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="container_functions.cpp" />
     <ClCompile Include="data_processor.cpp" />
     <ClCompile Include="data_processor_funcs.cpp" />
     <ClCompile Include="interfaces.cpp" />

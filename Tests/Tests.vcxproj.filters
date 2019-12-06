@@ -14,6 +14,9 @@
     <ClCompile Include="data_processor_funcs.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
+    <ClCompile Include="container_functions.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

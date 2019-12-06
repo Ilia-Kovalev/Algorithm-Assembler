@@ -23,7 +23,7 @@ Copyright 2019 Ilia S. Kovalev
 
 using namespace algorithm_assembler::utils;
 
-constexpr void type()
+TEST(Typelist, type)
 {
 	using testlist = Typelist<int, char, bool, int, float, float>;
 
@@ -53,7 +53,7 @@ constexpr void type()
 	>);
 }
 
-constexpr void size()
+TEST(Typelist, size)
 {
 	using testlist = Typelist<int, char, bool, int, float, float>;
 
@@ -61,7 +61,7 @@ constexpr void size()
 	static_assert(Typelist<>::size == 0);
 }
 
-constexpr void tuple()
+TEST(Typelist, tuple)
 {
 	static_assert(std::is_same_v<Typelist<>::values_container<std::tuple>, std::tuple<>>);
 
@@ -76,7 +76,7 @@ constexpr void tuple()
 	static_assert(std::is_same_v<case2, correct2>);
 }
 
-constexpr void modification()
+TEST(Typelist, modification)
 {
 	using testlist = Typelist<int, char, bool, int, float, float>;
 
@@ -172,7 +172,7 @@ constexpr void modification()
 	>);
 }
 
-constexpr void predicates()
+TEST(Typelist, predicates)
 {
 	static_assert(!is_type_list_v<int>);
 	static_assert(is_type_list_v<Typelist<>>);
@@ -186,13 +186,4 @@ constexpr void predicates()
 	static_assert(!Typelist<bool, float>::contains<int>);
 	static_assert(Typelist<bool, float>::contains<bool>);
 	static_assert(!Typelist<bool, Typelist<int>, float>::contains<int>);
-
-}
-
-TEST(Typelist, Static_tests) {
-	type();
-	size();
-	tuple();
-	modification();
-	predicates();
 }
