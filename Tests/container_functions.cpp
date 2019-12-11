@@ -199,6 +199,35 @@ TEST(Container_functions, map)
 }
 
 
+TEST(Container_functions, filter)
+{
+    using list1 = Typelist<int, float, size_t, char>;
+    using list2 = Typelist<int, const float, size_t, char>;
+    using list3 = Typelist<int, const float, size_t, const char>;
+    using list4 = Typelist<const int, const float, const size_t, const char>;
+
+    static_assert(is_same_v<
+        filter_t<list1, is_const<void>>,
+        Typelist<>
+    >);
+
+    static_assert(is_same_v<
+        filter_t<list2, is_const<void>>,
+        Typelist<const float>
+    >);
+
+    static_assert(is_same_v<
+        filter_t<list3, is_const<void>>,
+        Typelist<const float, const char>
+    >);
+
+    static_assert(is_same_v<
+        filter_t<list4, is_const<void>>,
+        list4
+    >);
+}
+
+
 TEST(Container_functions, drop_while_type)
 {
     using list1 = Typelist<int, char, void, bool, int, void>;
@@ -261,5 +290,34 @@ TEST(Container_functions, intersection)
     static_assert(is_same_v<
         intersection_t<list5, list1, list2, list3>,
         Typelist<>
+    >);
+}
+
+
+TEST(Container_functions, substraction)
+{
+    using list1 = Typelist<int, double, char>;
+    using list2 = Typelist<bool, float>;
+    using list3 = Typelist<int, double>;
+    using list4 = Typelist<>;
+
+    static_assert(is_same_v<
+        substraction_t<list1, list1>,
+        Typelist<>
+    >);
+
+    static_assert(is_same_v<
+        substraction_t<list1, list2>,
+        list1
+    >);
+
+    static_assert(is_same_v<
+        substraction_t<list1, list3>,
+        Typelist<char>
+    >);
+
+    static_assert(is_same_v<
+        substraction_t<list1, list4>,
+        list1
     >);
 }

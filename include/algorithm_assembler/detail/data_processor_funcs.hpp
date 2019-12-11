@@ -46,18 +46,22 @@ namespace algorithm_assembler::detail
 		return f(std::forward<Input>(in));
 	}
 
-	template<class F, typename... Inputs, typename... F_ins>
+	template<class F, typename Tuple, typename... F_ins>
 	inline auto process_though_functor(
 		F& f,
-		std::tuple<Inputs...>&& in_tuple,
+		Tuple&& in_tuple,
 		utils::Typelist<F_ins...>&&
 	) -> typename F::Output_type
 	{
-		using In_tuple = std::tuple<Inputs...>;
-
 		return f(std::forward<std::remove_reference_t<F_ins>>(
-			tuple_get_wrapper<F_ins>(std::forward<In_tuple>(in_tuple))
+			tuple_get_wrapper<F_ins>(std::forward<Tuple>(in_tuple))
 			)...);
+	}
+
+	template<class F, typename Tuple, typename... Denamded>
+	inline auto set_to_damandand(F& f, Tuple&& in_tuple, utils::Typelist<Denamded...>&&)
+	{
+		(f.set(std::get<Denamded>(in_tuple)), ...);
 	}
 
 	template<class F, class... Fs>
@@ -76,11 +80,14 @@ namespace algorithm_assembler::detail
 	template<typename Input, typename Auxiliary, class F, class... Fs,
 		typename = std::enable_if_t<!std::is_base_of_v<Functor, std::remove_reference_t<Input>>>
 	>
-	inline auto process_data(Input&& in, Auxiliary&& aux, F& f, Fs&... tail) 
+	inline auto process_data(Input&& in, Auxiliary&& aux, F& f, Fs&... tail)
 		-> typename utils::Typelist<F, Fs...>::back::Output_type
 	{
 		bool constexpr is_end = sizeof...(tail) == 0;
 		bool constexpr is_input_tuple = utils::is_tuple_v<std::remove_reference_t<Input>>;
+
+		if constexpr (std::is_base_of_v<detail::Demandant, F>)
+			set_to_damandand(f, std::forward<Auxiliary>(aux), F::Demanded_types{});
 
 		if constexpr (!is_end && is_input_tuple)
 			return process_data(

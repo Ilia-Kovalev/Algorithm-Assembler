@@ -20,6 +20,7 @@ Copyright 2019 Ilia S. Kovalev
 #include "enums.hpp"
 #include "utils/typelist.hpp"
 #include "detail/interfaces_detail.hpp"
+#include "utils/heterogeneous_container_functions.hpp"
 
 namespace algorithm_assembler
 {
@@ -64,24 +65,39 @@ namespace algorithm_assembler
 		virtual bool is_active() const = 0;
 	};
 
-
 	/// <summary>
-	/// Interface for modules generating auxiliary data.
+	/// Helper struct for passing types with updating policy to interfaces Generates and Transforms.
 	/// </summary>
 	template<Updating_policy UP, typename T, typename... Ts>
+	struct Types_with_policy
+	{
+		constexpr static Updating_policy policy = UP;
+		using types = utils::Typelist<T, Ts...>;
+	};
+
+	/// <summary>
+	/// Interface for modules generating auxiliary data. 
+	/// Arguments are passed via Types_with_policy class.
+	/// </summary>
+	template<typename Types_with_policy, typename... Ts>
 	class Generates :
-		public detail::Generates<UP, T>,
-		public detail::Generates<UP, Ts>...
+		public detail::Generates_types_with_policy<Types_with_policy>,
+		public detail::Generates_types_with_policy<Ts>...
 	{
 	public:
-		// Macros are necessary to add in inherited classes before overriding virtual methods. If updating policies of derived class "never" and "sometimes" use only AA_GENERATES_SOMETIMES.
-		#define AA_GENERATES_ALWAYS template <typename T_>  T_ get();
-		#define AA_GENERATES_NEVER template <typename T_>  T_ get() const;
+		// Macros are necessary to add in inherited classes before overriding virtual methods.
+		// AA_GENERATES for Updating_policy never and always
+		// AA_GENERATES for Updating_policy sometimes
+		#define AA_GENERATES template <typename T_>  T_ get();
 		#define AA_GENERATES_SOMETIMES  template <typename T_>  T_ get(); \
 										template <typename> bool has_new_data() const;
 
-		template<Updating_policy UP>
-		using generates_types = utils::Typelist<T, Ts...>;
+		using Generated_types = utils::concatenation_t<
+			typename Types_with_policy::types,
+			typename Ts::types...
+		>;
+
+		using Grouped_generated_types = utils::Typelist<Types_with_policy, Ts...>;
 	};
 
 
@@ -98,7 +114,7 @@ namespace algorithm_assembler
 		#define AA_TRANSFORMS_SOMETIMES template<typename> bool transformation_changed() const;
 
 		template<Updating_policy UP>
-		using transforms_types = utils::Typelist<T, Ts...>;
+		using Transforms_types = utils::Typelist<T, Ts...>;
 	};
 
 
@@ -107,14 +123,12 @@ namespace algorithm_assembler
 	/// </summary>
 	template<typename T, typename... Ts>
 	class Demands :
-		public detail::Demandands<T>,
-		public detail::Demandands<Ts>...
+		public detail::Demands<T>,
+		public detail::Demands<Ts>...
 	{
-		using demanded_types = utils::Typelist<T, Ts...>;
+	public:
+		using Demanded_types = utils::Typelist<T, Ts...>;
 	};
-
-
-
 
 
 	/// <summary>

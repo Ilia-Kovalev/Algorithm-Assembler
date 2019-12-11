@@ -42,8 +42,8 @@ namespace algorithm_assembler::utils
 		using type = Container;
 	};
 
-	template<class... Containers>
-	using concatenation_t = typename concatenation<Containers...>::type;
+	template<class Container, class... Containers>
+	using concatenation_t = typename concatenation<Container, Containers...>::type;
 
 
 	template<typename Container, size_t Index>
@@ -204,8 +204,8 @@ namespace algorithm_assembler::utils
 	template<class Container, typename Function>
 	struct map;
 
-	template<typename... Content, template <typename> class F, template<typename...> class Container, typename T>
-	struct map<Container<Content...>, F<T>>
+	template<typename... Content, template <typename> class F, template<typename...> class Container, typename _>
+	struct map<Container<Content...>, F<_>>
 	{
 		using type = Container<typename F<Content>::type...>;
 	};
@@ -213,6 +213,53 @@ namespace algorithm_assembler::utils
 	template<class Container, class Function>
 	using map_t = typename map<Container, Function>::type;
 
+
+
+	template<class Result, typename Predicate, typename Test, typename... Ts>
+	struct filter_impl;
+
+	template<
+		class Result,
+		typename H, typename... Ts,
+		template<typename> class Predicate, typename _>
+	struct filter_impl<
+		Result, Predicate<_>, 
+		std::enable_if_t<Predicate<H>::value>, 
+		H, Ts...>
+	{
+		using type = typename filter_impl<push_back_t<Result, H>, Predicate<_>, void, Ts...>::type;
+	};
+
+	template<
+		class Result,
+		typename H, typename... Ts,
+		template<typename> class Predicate, typename _>
+	struct filter_impl<
+		Result, Predicate<_>,
+		std::enable_if_t<!Predicate<H>::value>,
+		H, Ts...>
+	{
+		using type = typename filter_impl<Result, Predicate<_>, void, Ts...>::type;
+	};
+
+	template<class Result, typename Predicate, typename Test>
+	struct filter_impl<Result, Predicate, Test>
+	{
+		using type = Result;
+	};
+
+
+	template<class Container, typename Predicate>
+	struct filter;
+
+	template<template<typename...> class Container, typename Predicate, typename... Ts>
+	struct filter<Container<Ts...>, Predicate>
+	{
+		using type = typename filter_impl<Container<>, Predicate, void, Ts...>::type;
+	};
+
+	template<class Container, typename Predicate>
+	using filter_t = typename filter<Container, Predicate>::type;
 
 
 	template<class Container, typename Type, typename = void>
@@ -297,8 +344,43 @@ namespace algorithm_assembler::utils
 	
 	template<class Container, class... Containers>
 	using intersection_t = typename intersection<unique_t<Container>, Containers...>::type;
+
+
+	template<class Substraction, class Container1, class Container2, typename = void> struct substraction_impl;
+
+	template<class Substraction, template<typename...> class Container1, 
+		typename H, typename... Ts, class Container2>
+	struct substraction_impl<Substraction, Container1<H, Ts...>, Container2,
+		std::enable_if_t<contains_v<Container2, H>>
+	>
+	{
+		using type = typename substraction_impl<Substraction, Container1<Ts...>, Container2>::type;
+	};
+
+	template<class Substraction, template<typename...> class Container1,
+		typename H, typename... Ts, class Container2>
+	struct substraction_impl<Substraction, Container1<H, Ts...>, Container2,
+		std::enable_if_t<!contains_v<Container2, H>>
+		>
+	{
+		using type = typename substraction_impl<push_back_t<Substraction, H>, Container1<Ts...>, Container2>::type;
+	};
+
+	template<class Substraction, template<typename...> class Container1, class Container2>
+		struct substraction_impl<Substraction, Container1<>, Container2>
+	{
+		using type = Substraction;
+	};
+
+	template<class Container1, class Container2> struct substraction;
+
+	template<template<typename...> class Container1, typename... Ts, class Container2>
+	struct substraction<Container1<Ts...>, Container2>
+	{
+		using type = typename substraction_impl<Container1<>, Container1<Ts...>, Container2>::type;
+	};
+
+	template<class Container1, class Container2>
+	using substraction_t = typename substraction<Container1, Container2>::type;
 }
-
-
-
 #endif

@@ -21,13 +21,14 @@ Copyright 2019 Ilia S. Kovalev
 using namespace algorithm_assembler;
 
 class Generator_Test :
-	public Generates<Updating_policy::always, int, float, bool>,
-	public Generates<Updating_policy::sometimes, double>,
-	public Generates<Updating_policy::never, char>
+	public Generates<
+		Types_with_policy<Updating_policy::always, int, float, bool>,
+		Types_with_policy<Updating_policy::sometimes, double>,
+		Types_with_policy<Updating_policy::never, char>
+	>
 {
 public:
 	AA_GENERATES_SOMETIMES;
-	AA_GENERATES_NEVER;
 
 	template<> int get<int>() override { return 5; }
 	template<> float get<float>() override { return 5.5; }

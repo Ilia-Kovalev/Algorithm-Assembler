@@ -325,3 +325,45 @@ TEST(Data_processor_functions, process_data_simple_functors)
 	ASSERT_EQ(Test_object<2>::move_counter, 0);
 	ASSERT_EQ(Test_object<2>::other_counter, 1);
 }
+
+
+TEST(Data_processor_functions, process_data_demandant)
+{
+	struct F : 
+		public aa::Functor<int, int>,
+		public aa::Demands<std::string>
+	{
+		std::string s;
+		int operator()(int i) override { return i; }
+		void set(const std::string& str) override { s = str; }
+	};
+
+	F f;
+	std::tuple<std::string, float> aux("Origin", 0.f);
+
+	process_data(0, aux, f);
+
+	ASSERT_EQ(std::get<std::string>(aux), f.s);
+}
+
+TEST(Data_processor_functions, process_data_demandant_several_types)
+{
+	struct F :
+		public aa::Functor<int, int>,
+		public aa::Demands<std::string, double>
+	{
+		std::string s;
+		double d;
+		int operator()(int i) override { return i; }
+		void set(const std::string& str) override { s = str; }
+		void set(const double& db) override { d = db; }
+	};
+
+	F f;
+	std::tuple<std::string, float, double> aux("Origin", 0.f, 15.6);
+
+	process_data(0, aux, f);
+
+	ASSERT_EQ(std::get<std::string>(aux), f.s);
+	ASSERT_EQ(std::get<double>(aux), f.d);
+}

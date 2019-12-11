@@ -20,10 +20,14 @@ Copyright 2019 Ilia S. Kovalev
 #include "../interfaces.hpp"
 #include "../enums.hpp"
 
+namespace algorithm_assembler
+{
+	template<Updating_policy, typename, typename...> struct Types_with_policy;
+}
+
 namespace algorithm_assembler::detail
 {
 	class Functor {};
-
 
 
 	class Generator {};
@@ -32,10 +36,11 @@ namespace algorithm_assembler::detail
 
 	template<typename T> class Generates_type {};
 
-	template<Updating_policy UP, typename T> class Generates :
+	template<Updating_policy UP, typename T> 
+	class Generates_type_with_policy :
 		virtual public Generator,
 		virtual public Generatating_policy<UP>,
-		virtual public Generates_type<T>
+		public Generates_type<T>
 	{
 	public:
 		template<typename T_> T_ get();
@@ -46,7 +51,8 @@ namespace algorithm_assembler::detail
 		template<> virtual T get<T>();
 	};
 
-	template<typename T> class Generates<Updating_policy::sometimes, T> :
+	template<typename T> 
+	class Generates_type_with_policy<Updating_policy::sometimes, T> :
 		virtual public Generator,
 		virtual public Generatating_policy<Updating_policy::sometimes>,
 		public Generates_type<T>
@@ -71,20 +77,29 @@ namespace algorithm_assembler::detail
 		template<> virtual bool has_new_data<T>() const;
 	};
 
-	template<typename T> class Generates<Updating_policy::never, T> :
+	template<typename T> 
+	class Generates_type_with_policy<Updating_policy::never, T> :
 		virtual public Generator,
 		virtual public Generatating_policy<Updating_policy::never>,
 		public Generates_type<T>
 	{
 	public:
-		template<typename T_> T_ get() const;
+		template<typename T_> T_ get();
 
 		/// <summary>
 		/// Method to get generated data of specified type.
 		/// </summary>
-		template<> virtual T get<T>() const;
+		template<> virtual T get<T>();
 	};
 
+	template<typename Types_with_policy>
+	class Generates_types_with_policy;
+
+	template<Updating_policy UP, typename T, typename... Ts>
+	class Generates_types_with_policy<Types_with_policy<UP, T, Ts... >> :
+		public Generates_type_with_policy<UP, T>,
+		public Generates_type_with_policy<UP, Ts>...
+	{};
 
 
 	class Transformer {};
@@ -139,12 +154,10 @@ namespace algorithm_assembler::detail
 	};
 
 
-
-
 	class Demandant {};
 
 	template<typename T>
-	class Demandands : virtual public Demandant
+	class Demands : virtual public Demandant
 	{
 	public:
 		/// <summary>

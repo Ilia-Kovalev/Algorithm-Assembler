@@ -34,5 +34,8 @@
     <ClInclude Include="include\algorithm_assembler\utils\tuple.hpp">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="include\algorithm_assembler\utils\misc.hpp">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

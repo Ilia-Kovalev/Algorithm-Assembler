@@ -28,7 +28,19 @@ namespace algorithm_assembler
 			typename utils::Typelist<Module, Modules...>::back::Output_type,
 			utils::Typelist<Module, Modules...>
 		>
+		, public detail::DP_Demandant<
+			utils::Typelist<Module, Modules...>,
+			utils::substraction_t<
+				detail::get_demanded_types_t<Module, Modules...>,
+				detail::get_generated_types_t<Module, Modules...>
+			>
+		>
 	{};
-}
 
+
+
+
+
+
+}
 #endif
