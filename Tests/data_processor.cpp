@@ -132,6 +132,15 @@ TEST(Data_processor, processor_simple)
 	ASSERT_EQ(Test_object<0>::other_counter, 1);
 }
 
+
+TEST(Data_processor_detail, is_types_with_policy)
+{
+	using types1 = Types_with_policy<Updating_policy::never, void>;
+
+	static_assert(is_types_with_policy<Updating_policy::never>::predicate<types1>::value);
+	static_assert(!is_types_with_policy<Updating_policy::always>::predicate<types1>::value);
+}
+
 TEST(Data_processor_detail, is_generator)
 {
 	struct D : public aa::Generates<Types_with_policy<Updating_policy::always, int, float>> {};
@@ -167,14 +176,6 @@ TEST(Data_processor_detail, is_generating_policy)
 	static_assert(!is_generating_policy<Updating_policy::never>::predicate<ND>::value);
 }
 
-TEST(Data_processor_detail, is_types_with_policy)
-{
-	using types1 = Types_with_policy<Updating_policy::never, void>;
-
-	static_assert(is_types_with_policy<Updating_policy::never>::predicate<types1>::value);
-	static_assert(!is_types_with_policy<Updating_policy::always>::predicate<types1>::value);
-}
-
 TEST(Data_processor_detail, get_generated_types_of_module_by_policy)
 {
 	struct D : 
@@ -191,21 +192,20 @@ TEST(Data_processor_detail, get_generated_types_of_module_by_policy)
 	>);
 
 	static_assert(is_same_v<
-		get_generated_types_of_module_by_policy<D, Updating_policy::never>::type,
+		get_generated_types_of_module_by_policy_t<D, Updating_policy::never>,
 		Typelist<double>
 	>);
 
 	static_assert(is_same_v<
-		get_generated_types_of_module_by_policy<D, Updating_policy::sometimes>::type,
+		get_generated_types_of_module_by_policy_t<D, Updating_policy::sometimes>,
 		Typelist<>
 	>);
 
 	static_assert(is_same_v<
-		get_generated_types_of_module_by_policy<ND, Updating_policy::sometimes>::type,
+		get_generated_types_of_module_by_policy_t<ND, Updating_policy::sometimes>,
 		Typelist<>
 	>);
 }
-
 
 TEST(Data_processor_detail, get_generated_types)
 {
@@ -216,9 +216,106 @@ TEST(Data_processor_detail, get_generated_types)
 		>
 	{};
 
+	struct D2 :
+		public aa::Generates<
+		Types_with_policy<Updating_policy::sometimes, char>,
+		Types_with_policy<Updating_policy::never, bool>
+		>
+	{};
+
 	static_assert(is_same_v<
-		get_generated_types_t<D>,
-		Typelist<int, float, double>
+		get_generated_types_t<D, D2>,
+		Typelist<int, float, double, char, bool>
+	>);
+}
+
+TEST(Data_processor_detail, is_transformer)
+{
+	struct D : public aa::Transforms<Types_with_policy<Updating_policy::always, int, float>> {};
+	struct ND {};
+
+	static_assert(is_transformer<D>::value);
+	static_assert(!is_transformer<ND>::value);
+}
+
+TEST(Data_processor_detail, filter_transformerss)
+{
+	struct D1 : public aa::Transforms<Types_with_policy<Updating_policy::always, int, float>> {};
+	struct D2 : public aa::Transforms<Types_with_policy<Updating_policy::always, int, float>> {};
+	struct ND {};
+
+	using list = Typelist<D1, ND, D2>;
+
+	static_assert(is_same_v<
+		filter_transformers_t<list>,
+		Typelist<D1, D2>
+	>);
+}
+
+TEST(Data_processor_detail, is_transformation_policy)
+{
+	struct D1 : public aa::Transforms<Types_with_policy<Updating_policy::always, int, float>> {};
+	struct D2 : public aa::Transforms<Types_with_policy<Updating_policy::never, int, float>> {};
+	struct ND {};
+
+	static_assert(is_transformation_policy<Updating_policy::always>::predicate<D1>::value);
+	static_assert(!is_transformation_policy<Updating_policy::never>::predicate<D1>::value);
+	static_assert(is_transformation_policy<Updating_policy::never>::predicate<D2>::value);
+	static_assert(!is_transformation_policy<Updating_policy::never>::predicate<ND>::value);
+}
+
+
+TEST(Data_processor_detail, get_transformed_types_of_module_by_policy)
+{
+	struct D :
+		public aa::Transforms<
+		Types_with_policy<Updating_policy::always, int, float>,
+		Types_with_policy<Updating_policy::never, double>
+		>
+	{};
+	struct ND {};
+
+	static_assert(is_same_v<
+		get_transformed_types_of_module_by_policy_t<D, Updating_policy::always>,
+		Typelist<int, float>
+	>);
+
+	static_assert(is_same_v<
+		get_transformed_types_of_module_by_policy_t<D, Updating_policy::never>,
+		Typelist<double>
+	>);
+
+	static_assert(is_same_v<
+		get_transformed_types_of_module_by_policy_t<D, Updating_policy::sometimes>,
+		Typelist<>
+	>);
+
+	static_assert(is_same_v<
+		get_transformed_types_of_module_by_policy_t<ND, Updating_policy::sometimes>,
+		Typelist<>
+	>);
+}
+
+
+TEST(Data_processor_detail, get_transformed_types)
+{
+	struct D :
+		public aa::Transforms<
+		Types_with_policy<Updating_policy::always, int, float>,
+		Types_with_policy<Updating_policy::never, double, float>
+		>
+	{};
+
+	struct D2 :
+		public aa::Transforms<
+		Types_with_policy<Updating_policy::sometimes, char>,
+		Types_with_policy<Updating_policy::never, bool, int>
+		>
+	{};
+
+	static_assert(is_same_v<
+		get_transformed_types_t<D, D2>,
+		Typelist<int, float, double, char, bool>
 	>);
 }
 

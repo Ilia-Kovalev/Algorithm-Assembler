@@ -103,18 +103,23 @@ namespace algorithm_assembler
 
 	/// <summary>
 	/// Interface for modules transforming auxiliary data.
+	/// Arguments are passed via Types_with_policy class.
 	/// </summary>
-	template<Updating_policy UP, typename T, typename... Ts>
+	template<typename Types_with_policy, typename... Ts>
 	class Transforms:
-		public detail::Transforms<UP, T>,
-		public detail::Transforms<UP, Ts>...
+		public detail::Transforms_types_with_policy<Types_with_policy>,
+		public detail::Transforms_types_with_policy<Ts>...
 	{
 	public:
 		// Macros are necessary to add in inherited classes before overriding virtual methods.
 		#define AA_TRANSFORMS_SOMETIMES template<typename> bool transformation_changed() const;
 
-		template<Updating_policy UP>
-		using Transforms_types = utils::Typelist<T, Ts...>;
+		using Transforms_types = utils::concatenation_t<
+			typename Types_with_policy::types,
+			typename Ts::types...
+		>;
+
+		using Grouped_transformed_types = utils::Typelist<Types_with_policy, Ts...>;
 	};
 
 

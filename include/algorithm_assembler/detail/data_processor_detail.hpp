@@ -70,6 +70,18 @@ namespace algorithm_assembler::detail
 		}
 	};
 
+	template<Updating_policy UP>
+	struct is_types_with_policy
+	{
+		template<typename Types_with_policy>
+		struct predicate
+		{
+			constexpr static bool value = UP == Types_with_policy::policy;
+		};
+	};
+
+
+
 	template<class T>
 	struct is_generator : public std::is_base_of<Generator, T> {};
 
@@ -83,15 +95,6 @@ namespace algorithm_assembler::detail
 		struct predicate : public std::is_base_of<Generatating_policy<UP>, Module> {};
 	};
 
-	template<Updating_policy UP>
-	struct is_types_with_policy
-	{
-		template<typename Types_with_policy>
-		struct predicate
-		{
-			constexpr static bool value = UP == Types_with_policy::policy;
-		};
-	};
 
 	template<class Module, Updating_policy, typename = void>
 	struct get_generated_types_of_module_by_policy;
@@ -142,6 +145,73 @@ namespace algorithm_assembler::detail
 	template<typename... Modules>
 	using get_generated_types_t =
 		typename get_generated_types<filter_generators_t<utils::Typelist<Modules...>>>::type;
+
+
+
+
+	template<class T>
+	struct is_transformer : public std::is_base_of<Transformer, T> {};
+
+	template<typename Modules_list>
+	using filter_transformers_t = utils::filter_t<Modules_list, is_transformer<void>>;
+
+	template<Updating_policy UP>
+	struct is_transformation_policy
+	{
+		template<class Module>
+		struct predicate : public std::is_base_of<Transformation_policy<UP>, Module> {};
+	};
+
+
+	template<class Module, Updating_policy, typename = void>
+	struct get_transformed_types_of_module_by_policy;
+
+	template<class Module, Updating_policy UP>
+	struct get_transformed_types_of_module_by_policy<Module, UP,
+		std::enable_if_t<std::is_base_of_v<Transformation_policy<UP>, Module>>
+	>
+	{
+		using type = typename utils::filter_t<
+			typename Module::Grouped_transformed_types,
+			typename is_types_with_policy<UP>::template predicate<void>
+		>::head::types;
+	};
+
+	template<class Module, Updating_policy UP>
+	struct get_transformed_types_of_module_by_policy<Module, UP,
+		std::enable_if_t<!std::is_base_of_v<Transformation_policy<UP>, Module>>
+	>
+	{
+		using type = utils::Typelist<>;
+	};
+
+	template<class Module, Updating_policy UP>
+	using get_transformed_types_of_module_by_policy_t =
+		typename get_transformed_types_of_module_by_policy<Module, UP>::type;
+
+	template<class Module>
+	using get_transformed_types_of_module_t = typename Module::Transforms_types;
+
+	template<typename Modules_list>
+	struct get_transformed_types;
+
+	template<class Module, class... Modules>
+	struct get_transformed_types<utils::Typelist<Module, Modules...>>
+	{
+		using type = utils::unique_t<utils::concatenation_t<
+			get_transformed_types_of_module_t<Module>,
+			get_transformed_types_of_module_t<Modules>...>>;
+	};
+
+	template<>
+	struct get_transformed_types<utils::Typelist<>>
+	{
+		using type = utils::Typelist<>;
+	};
+
+	template<typename... Modules>
+	using get_transformed_types_t =
+		typename get_transformed_types<filter_transformers_t<utils::Typelist<Modules...>>>::type;
 
 
 	//template<typename Demanded_typelist, typename Transformed_typelist>

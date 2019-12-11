@@ -54,14 +54,14 @@ TEST(Interfaces, Generator)
 
 
 class Transformer_test :
-	public Transforms<Updating_policy::never, int>,
-	public Transforms<Updating_policy::sometimes, double, float>,
-	public Transforms<Updating_policy::always, char>
+	public Transforms<Types_with_policy<Updating_policy::never, int>>,
+	public Transforms<Types_with_policy<Updating_policy::sometimes, double, float>>,
+	public Transforms< Types_with_policy<Updating_policy::always, char>>
 {
 public:
 	AA_TRANSFORMS_SOMETIMES;
 
-	void transform(int& in) const override { in += 10; }
+	void transform(int& in) override { in += 10; }
 	void transform(double& in)  override { in *= 2; }
 	void transform(float& in)  override { in *= 3; }
 	void transform(char& in) override { in = 'b'; }

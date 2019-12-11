@@ -108,7 +108,8 @@ namespace algorithm_assembler::detail
 
 	template<typename T> class Transforms_type {};
 
-	template<Updating_policy UP, typename T> class Transforms :
+	template<Updating_policy UP, typename T> 
+	class Transforms_type_with_policy :
 		virtual public Transformer,
 		virtual public Transformation_policy<UP>,
 		public Transforms_type<T>
@@ -120,7 +121,8 @@ namespace algorithm_assembler::detail
 		virtual void transform(T& data) = 0;
 	};
 
-	template<typename T> class Transforms<Updating_policy::sometimes, T> :
+	template<typename T> 
+	class Transforms_type_with_policy<Updating_policy::sometimes, T> :
 		virtual public Transformer,
 		virtual public Transformation_policy<Updating_policy::sometimes>,
 		public Transforms_type<T>
@@ -131,7 +133,6 @@ namespace algorithm_assembler::detail
 		/// </summary>
 		virtual void transform(T& data) = 0;
 
-
 		template<typename T_> bool transformation_changed() const;
 
 		/// <summary>
@@ -141,17 +142,14 @@ namespace algorithm_assembler::detail
 		template<> virtual bool transformation_changed<T>() const;
 	};
 
-	template<typename T> class Transforms<Updating_policy::never, T> :
-		virtual public Transformer,
-		virtual public Transformation_policy<Updating_policy::never>,
-		public Transforms_type<T>
-	{
-	public:
-		/// <summary>
-		/// Transforms referenced value.
-		/// </summary>
-		virtual void transform(T& data) const = 0;
-	};
+	template<typename Types_with_policy>
+	class Transforms_types_with_policy;
+
+	template<Updating_policy UP, typename T, typename... Ts>
+	class Transforms_types_with_policy<Types_with_policy<UP, T, Ts...>> :
+		public Transforms_type_with_policy<UP, T>,
+		public Transforms_type_with_policy<UP, Ts>...
+	{};
 
 
 	class Demandant {};
