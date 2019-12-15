@@ -297,7 +297,7 @@ TEST(Data_processor_functions, process_data_simple_functors)
 	F1 f1;
 	F2 f2;
 
-	auto&& out = process_data(f0, f1, f2);
+	auto&& out = process_data(tuple<>(), tuple<>(), f0, f1, f2);
 
 	ASSERT_EQ(out, "F0 created F1 forwarded / F0 created F1 created "s);
 
@@ -362,12 +362,13 @@ TEST(Data_processor_functions, process_data_demandant_several_types)
 }
 
 
-namespace initialize_const_aux_data_test
+namespace initialize_aux_data_test
 {
 	struct F1 :
+		public aa::Functor<int>,
 		public Generates<
-		Types_with_policy<Updating_policy::never, int, bool>,
-		Types_with_policy<Updating_policy::always, float>
+			Types_with_policy<Updating_policy::never, int, bool, char>,
+			Types_with_policy<Updating_policy::always, float>
 		>
 	{
 	public:
@@ -379,6 +380,7 @@ namespace initialize_const_aux_data_test
 		bool gi = false;
 		bool gb = false;
 		bool gf = false;
+		bool gc = false;
 
 		template<>
 		static float get<float>(F1& f) { f.gf = true; return f.f; }
@@ -388,37 +390,65 @@ namespace initialize_const_aux_data_test
 
 		template<>
 		static int get<int>(F1& f) { f.gi = true; return f.i; }
+
+		template<>
+		static char get<char>(F1& f) { f.gc = true; return 'c'; }
+
+		int operator()() override { return 0; }
+
+		bool is_active() const override { return true; };
 	};
 
 	struct F2 :
+		public aa::Functor<int, int>,
 		public Generates<Types_with_policy<Updating_policy::never, double>>,
-		public Transforms<Types_with_policy<Updating_policy::never, int>>
+		public Transforms<
+			Types_with_policy<Updating_policy::never, int>,
+			Types_with_policy<Updating_policy::always, char>
+		>
 	{
 	public:
 		AA_GENERATES
 
+		char c = '0';
+
 		bool gd = false;
 		bool ti = false;
+		bool tc = false;
 
 		template<>
 		static double get<double>(F2& f) { f.gd = true; return 2.2; }
 
 		void transform(int& i) override { i += 5; ti = true; }
+		void transform(char& c) override { tc = true; ++c; }
+
+		int operator()(int) override { return 0; }
 	};
 
-	struct F3 : public aa::Demands<int, float>
+	struct F3 :
+		public aa::Functor<int, int>,
+		public Demands<int, float, char>,
+		public Transforms <Types_with_policy<Updating_policy::always, double>>
 	{
 		int i = 0;
 		float f = 0;
+		char c = 0;
+
+		bool tc = false;
 
 		void set(const int& i_) override { i = i_; }
 		void set(const float& f_) override { f = f_; }
+		void set(const char& c_) override { c = c_; }
+
+		void transform(double& d) override { tc = true; d *= 2; }
+
+		int operator()(int) override { return 0; }
 	};
 }
 
 TEST(Data_processor_functions, get_generated)
 {
-	using namespace initialize_const_aux_data_test;
+	using namespace initialize_aux_data_test;
 
 	F1 f;
 
@@ -433,13 +463,13 @@ TEST(Data_processor_functions, get_generated)
 
 TEST(Data_processor_functions, initialize_const_aux_data)
 {
-	using namespace initialize_const_aux_data_test;
+	using namespace initialize_aux_data_test;
 
 	F1 f1;
 	F2 f2;
 	F3 f3;
 
-	initialize_const_aux_data(std::tuple<>(), f1, f2, f3);
+	initialize_const_aux_data(std::tuple(), f1, f2, f3);
 	ASSERT_FALSE(f1.gb);
 	ASSERT_TRUE(f1.gi);
 	ASSERT_FALSE(f1.gf);
@@ -450,3 +480,30 @@ TEST(Data_processor_functions, initialize_const_aux_data)
 	ASSERT_EQ(f3.i, 15);
 	ASSERT_EQ(f3.f, 0);
 }
+
+
+TEST(Data_processor_functions, aux_data_changes_always)
+{
+	using namespace initialize_aux_data_test;
+
+	F1 f1;
+	F2 f2;
+	F3 f3;
+
+	process_data(tuple(), tuple(), f1, f2, f3);
+
+	ASSERT_FALSE(f1.gi);
+	ASSERT_FALSE(f1.gb);
+	ASSERT_TRUE(f1.gc);
+	ASSERT_TRUE(f1.gf);
+
+	ASSERT_FALSE(f2.gd);
+	ASSERT_FALSE(f2.ti);
+	ASSERT_TRUE(f2.tc);
+
+	ASSERT_FALSE(f3.tc);
+	ASSERT_EQ(f3.c, 'd');
+	ASSERT_EQ(f3.f, 5.5f);
+	ASSERT_EQ(f3.i, 0);
+}
+

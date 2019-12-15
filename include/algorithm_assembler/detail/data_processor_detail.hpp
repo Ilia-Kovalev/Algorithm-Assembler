@@ -59,7 +59,10 @@ namespace algorithm_assembler::detail
 	public:
 		inline Out_type operator()() override
 		{
-			return process_data(std::get<Modules>(modules_)...);
+			return process_data(
+				std::tuple<>(),
+				std::tuple<>(),
+				std::get<Modules>(modules_)...);
 		}
 
 		inline bool is_active() const override
