@@ -110,13 +110,13 @@ TEST(Interfaces, Demandant)
 	Demadnand_test dt;
 
 	dt.set(true);
-	ASSERT_TRUE(dt.b_, true);
+	ASSERT_TRUE(dt.b_);
 
 	dt.set(15.f);
-	ASSERT_TRUE(dt.f_, 15.f);
+	ASSERT_EQ(dt.f_, 15.f);
 
 	dt.set(22);
-	ASSERT_TRUE(dt.i_, 22);
+	ASSERT_EQ(dt.i_, 22);
 }
 
 class Functor_test : public Functor<std::string, int, float, char>
