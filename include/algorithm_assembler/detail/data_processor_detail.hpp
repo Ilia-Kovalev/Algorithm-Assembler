@@ -43,11 +43,9 @@ namespace algorithm_assembler::detail
 	public:
 		inline Out_type operator()(In_type in, In_types... ins) override
 		{
-			int aux = 0; //TODO replace by actual data
-
 			return process_data(
 				std::forward_as_tuple(std::forward<In_type>(in), std::forward<In_types>(ins)...),
-				aux,
+				std::tuple<>(),
 				std::get<Modules>(modules_)...
 			);
 		}
@@ -85,6 +83,9 @@ namespace algorithm_assembler::detail
 	template<class T>
 	struct is_generator : public std::is_base_of<Generator, T> {};
 
+	template<class T>
+	constexpr bool is_generator_v = is_generator<T>::value;
+
 	template<typename Modules_list>
 	using filter_generators_t = utils::filter_t<Modules_list, is_generator<void>>;
 
@@ -105,7 +106,7 @@ namespace algorithm_assembler::detail
 	>
 	{
 		using type = typename utils::filter_t<
-			typename Module::Grouped_generated_types,
+			typename Module::Generates_types_grouped,
 			typename is_types_with_policy<UP>::template predicate<void>
 		>::head::types;
 	};
@@ -123,7 +124,7 @@ namespace algorithm_assembler::detail
 		typename get_generated_types_of_module_by_policy<Module, UP>::type;
 
 	template<class Module>
-	using get_generated_types_of_module_t = typename Module::Generated_types;
+	using get_generated_types_of_module_t = typename Module::Generates_types;
 
 	template<typename Modules_list>
 	struct get_generated_types;
@@ -146,11 +147,34 @@ namespace algorithm_assembler::detail
 	using get_generated_types_t =
 		typename get_generated_types<filter_generators_t<utils::Typelist<Modules...>>>::type;
 
+	template<typename Modules_list, Updating_policy UP>
+	struct get_generated_types_by_policy;
 
+	template<class Module, class... Modules, Updating_policy UP>
+	struct get_generated_types_by_policy<utils::Typelist<Module, Modules...>, UP>
+	{
+		using type = utils::unique_t<utils::concatenation_t<
+			get_generated_types_of_module_by_policy_t<Module, UP>,
+			get_generated_types_of_module_by_policy_t<Modules, UP>...>>;
+	};
+
+	template<Updating_policy UP>
+	struct get_generated_types_by_policy<utils::Typelist<>, UP>
+	{
+		using type = utils::Typelist<>;
+	};
+
+
+	template<Updating_policy UP, typename... Modules>
+	using get_generated_types_by_policy_t =
+		typename get_generated_types_by_policy<utils::Typelist<Modules...>, UP>::type;
 
 
 	template<class T>
 	struct is_transformer : public std::is_base_of<Transformer, T> {};
+
+	template<class T>
+	constexpr bool is_transformer_v = is_transformer<T>::value;
 
 	template<typename Modules_list>
 	using filter_transformers_t = utils::filter_t<Modules_list, is_transformer<void>>;
@@ -172,7 +196,7 @@ namespace algorithm_assembler::detail
 	>
 	{
 		using type = typename utils::filter_t<
-			typename Module::Grouped_transformed_types,
+			typename Module::Transforms_types_grouped,
 			typename is_types_with_policy<UP>::template predicate<void>
 		>::head::types;
 	};
@@ -214,6 +238,28 @@ namespace algorithm_assembler::detail
 		typename get_transformed_types<filter_transformers_t<utils::Typelist<Modules...>>>::type;
 
 
+	template<typename Modules_list, Updating_policy UP>
+	struct get_transformed_types_by_policy;
+
+	template<class Module, class... Modules, Updating_policy UP>
+	struct get_transformed_types_by_policy<utils::Typelist<Module, Modules...>, UP>
+	{
+		using type = utils::unique_t<utils::concatenation_t<
+			get_transformed_types_of_module_by_policy_t<Module, UP>,
+			get_transformed_types_of_module_by_policy_t<Modules, UP>...>>;
+	};
+
+	template< Updating_policy UP>
+	struct get_transformed_types_by_policy<utils::Typelist<>, UP>
+	{
+		using type = utils::Typelist<>;
+	};
+
+	template<Updating_policy UP, typename... Modules>
+	using get_transformed_types_by_policy_t =
+		typename get_transformed_types_by_policy<utils::Typelist<Modules...>, UP>::type;
+
+
 	//template<typename Demanded_typelist, typename Transformed_typelist>
 	//class DP_Input_aux_cache_impl;
 
@@ -235,11 +281,14 @@ namespace algorithm_assembler::detail
 	template<class T>
 	struct is_demandant : public std::is_base_of<Demandant, T> {};
 
+	template<class T>
+	constexpr bool is_demandant_v = is_demandant<T>::value;
+
 	template<typename Modules_list>
 	using filter_demandands_t = utils::filter_t<Modules_list, is_demandant<void>>;
 
 	template<class Module>
-	using get_demaded_types_of_module_t = typename Module::Demanded_types;
+	using get_demaded_types_of_module_t = typename Module::Demands_types;
 
 	template<typename Modules_list>
 	struct get_demanded_types;
@@ -266,7 +315,7 @@ namespace algorithm_assembler::detail
 	struct is_module_demands_type
 	{
 		template<class Module>
-		struct predicate : public std::is_base_of<Demands<Demanded_type>, Module> {};
+		struct predicate : public std::is_base_of<Demands_type<Demanded_type>, Module> {};
 	};
 
 	template<typename Demanded_type, class... Modules>
@@ -302,7 +351,7 @@ namespace algorithm_assembler::detail
 		public DP_Demandant_impl<Modules_list, Demanded_types_>...
 	{
 	public:
-		using Demanded_types = utils::Typelist<Demanded_type, Demanded_types_...>;
+		using Demands_types = utils::Typelist<Demanded_type, Demanded_types_...>;
 	};
 
 

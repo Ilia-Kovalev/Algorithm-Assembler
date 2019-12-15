@@ -33,7 +33,7 @@ namespace algorithm_assembler
 	/// Specialisation for functor with inputs.
 	/// </summary>
 	template<typename Output, typename Input, typename... Inputs>
-	class Functor<Output, Input, Inputs...> : public detail::Functor
+	class Functor<Output, Input, Inputs...> : public virtual detail::Functor_
 	{
 	public:
 		using Output_type = Output;
@@ -51,7 +51,7 @@ namespace algorithm_assembler
 	/// Specialisation for functor without inputs (data source).
 	/// </summary>
 	template<typename Output>
-	class Functor<Output> : public detail::Functor
+	class Functor<Output> : public virtual detail::Functor_
 	{
 	public:
 		using Output_type = Output;
@@ -88,16 +88,16 @@ namespace algorithm_assembler
 		// Macros are necessary to add in inherited classes before overriding virtual methods.
 		// AA_GENERATES for Updating_policy never and always
 		// AA_GENERATES for Updating_policy sometimes
-		#define AA_GENERATES template <typename T_>  T_ get();
-		#define AA_GENERATES_SOMETIMES  template <typename T_>  T_ get(); \
+		#define AA_GENERATES template<typename T, class F> static T get(F&);
+		#define AA_GENERATES_SOMETIMES template<typename T, class F> static T get(F&); \
 										template <typename> bool has_new_data() const;
 
-		using Generated_types = utils::concatenation_t<
+		using Generates_types = utils::concatenation_t<
 			typename Types_with_policy::types,
 			typename Ts::types...
 		>;
 
-		using Grouped_generated_types = utils::Typelist<Types_with_policy, Ts...>;
+		using Generates_types_grouped = utils::Typelist<Types_with_policy, Ts...>;
 	};
 
 
@@ -119,7 +119,7 @@ namespace algorithm_assembler
 			typename Ts::types...
 		>;
 
-		using Grouped_transformed_types = utils::Typelist<Types_with_policy, Ts...>;
+		using Transforms_types_grouped = utils::Typelist<Types_with_policy, Ts...>;
 	};
 
 
@@ -128,11 +128,11 @@ namespace algorithm_assembler
 	/// </summary>
 	template<typename T, typename... Ts>
 	class Demands :
-		public detail::Demands<T>,
-		public detail::Demands<Ts>...
+		public detail::Demands_type<T>,
+		public detail::Demands_type<Ts>...
 	{
 	public:
-		using Demanded_types = utils::Typelist<T, Ts...>;
+		using Demands_types = utils::Typelist<T, Ts...>;
 	};
 
 

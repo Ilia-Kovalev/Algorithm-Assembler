@@ -27,7 +27,7 @@ namespace algorithm_assembler
 
 namespace algorithm_assembler::detail
 {
-	class Functor {};
+	class Functor_ {};
 
 
 	class Generator {};
@@ -42,13 +42,6 @@ namespace algorithm_assembler::detail
 		virtual public Generatating_policy<UP>,
 		public Generates_type<T>
 	{
-	public:
-		template<typename T_> T_ get();
-
-		/// <summary>
-		/// Method to get generated data of specified type.
-		/// </summary>
-		template<> virtual T get<T>();
 	};
 
 	template<typename T> 
@@ -58,14 +51,6 @@ namespace algorithm_assembler::detail
 		public Generates_type<T>
 	{
 	public:
-
-		template<typename T_> T_ get();
-
-		/// <summary>
-		/// Method to get generated data of specified type.
-		/// </summary>
-		template<> virtual T get<T>();
-
 		template<typename T_> bool has_new_data() const;
 
 		/// <summary>
@@ -77,20 +62,6 @@ namespace algorithm_assembler::detail
 		template<> virtual bool has_new_data<T>() const;
 	};
 
-	template<typename T> 
-	class Generates_type_with_policy<Updating_policy::never, T> :
-		virtual public Generator,
-		virtual public Generatating_policy<Updating_policy::never>,
-		public Generates_type<T>
-	{
-	public:
-		template<typename T_> T_ get();
-
-		/// <summary>
-		/// Method to get generated data of specified type.
-		/// </summary>
-		template<> virtual T get<T>();
-	};
 
 	template<typename Types_with_policy>
 	class Generates_types_with_policy;
@@ -155,7 +126,7 @@ namespace algorithm_assembler::detail
 	class Demandant {};
 
 	template<typename T>
-	class Demands : virtual public Demandant
+	class Demands_type : virtual public Demandant
 	{
 	public:
 		/// <summary>
@@ -163,10 +134,6 @@ namespace algorithm_assembler::detail
 		/// </summary>
 		virtual void set(const T& in) = 0;
 	};
-
-
-
-
 
 
 

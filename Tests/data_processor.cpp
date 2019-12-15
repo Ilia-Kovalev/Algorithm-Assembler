@@ -16,19 +16,7 @@ Copyright 2019 Ilia S. Kovalev
 
 #include "pch.h"
 
-#include <algorithm_assembler/data_processor.hpp>
-#include <algorithm_assembler/utils/typelist.hpp>
-
 #include "test_objects.hpp"
-
-using namespace std;
-
-using namespace algorithm_assembler;
-using namespace algorithm_assembler::detail;
-namespace aa = algorithm_assembler;
-
-template<typename... Ts>
-using Typelist = algorithm_assembler::utils::Typelist<Ts...>;
 
 INI_TEST_OBJECT(0)
 INI_TEST_OBJECT(1)
@@ -229,6 +217,50 @@ TEST(Data_processor_detail, get_generated_types)
 	>);
 }
 
+TEST(Data_processor_detail, get_generated_types_by_policy)
+{
+	struct D :
+		public aa::Generates<
+		Types_with_policy<Updating_policy::always, int, float>,
+		Types_with_policy<Updating_policy::never, double, float>
+		>
+	{};
+
+	struct D2 :
+		public aa::Generates<
+		Types_with_policy<Updating_policy::sometimes, char>,
+		Types_with_policy<Updating_policy::never, bool, int>
+		>
+	{};
+
+	struct ND {};
+
+	static_assert(is_same_v<
+		get_generated_types_by_policy_t<Updating_policy::always, D, D2>,
+		Typelist<int, float>
+	>);
+
+	static_assert(is_same_v<
+		get_generated_types_by_policy_t<Updating_policy::never, D, D2>,
+		Typelist<double, float, bool, int>
+	>);
+
+	static_assert(is_same_v<
+		get_generated_types_by_policy_t<Updating_policy::sometimes, D, D2>,
+		Typelist<char>
+	>);
+
+	static_assert(is_same_v<
+		get_generated_types_by_policy_t<Updating_policy::sometimes, ND>,
+		Typelist<>	
+	>);
+
+	static_assert(is_same_v<
+		get_generated_types_by_policy_t<Updating_policy::sometimes, D>,
+		Typelist<>
+	>);
+}
+
 TEST(Data_processor_detail, is_transformer)
 {
 	struct D : public aa::Transforms<Types_with_policy<Updating_policy::always, int, float>> {};
@@ -316,6 +348,38 @@ TEST(Data_processor_detail, get_transformed_types)
 	static_assert(is_same_v<
 		get_transformed_types_t<D, D2>,
 		Typelist<int, float, double, char, bool>
+	>);
+}
+
+TEST(Data_processor_detail, get_transformed_types_by_policy)
+{
+	struct D :
+		public aa::Transforms<
+		Types_with_policy<Updating_policy::always, int, float>,
+		Types_with_policy<Updating_policy::never, double, float>
+		>
+	{};
+
+	struct D2 :
+		public aa::Transforms<
+		Types_with_policy<Updating_policy::sometimes, char>,
+		Types_with_policy<Updating_policy::never, bool, int>
+		>
+	{};
+
+	static_assert(is_same_v<
+		get_transformed_types_by_policy_t<Updating_policy::always, D, D2>,
+		Typelist<int, float>
+	>);
+
+	static_assert(is_same_v<
+		get_transformed_types_by_policy_t<Updating_policy::never, D, D2>,
+		Typelist<double, float, bool, int>
+	>);
+
+	static_assert(is_same_v<
+		get_transformed_types_by_policy_t<Updating_policy::sometimes, D, D2>,
+		Typelist<char>
 	>);
 }
 

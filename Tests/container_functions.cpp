@@ -16,15 +16,6 @@ Copyright 2019 Ilia S. Kovalev
 
 #include "pch.h"
 
-#include <type_traits>
-#include <typeinfo>
-
-#include <algorithm_assembler/utils/heterogeneous_container_functions.hpp>
-#include <algorithm_assembler/utils/typelist.hpp>
-
-using namespace algorithm_assembler::utils;
-using namespace std;
-
 TEST(Container_functions, concatenation) 
 {
     using list1 = Typelist<int, bool, double>;
@@ -191,10 +182,16 @@ TEST(Container_functions, index)
 TEST(Container_functions, map)
 {
     using list = Typelist<int&, char&>;
+    using list2 = Typelist<>;
 
     static_assert(is_same_v<
         map_t<list, std::remove_reference<void>>,
         Typelist<int, char>
+    >);
+
+    static_assert(is_same_v<
+        map_t<list2, std::remove_reference<void>>,
+        Typelist<>
     >);
 }
 

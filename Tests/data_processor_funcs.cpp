@@ -15,16 +15,7 @@ Copyright 2019 Ilia S. Kovalev
 */
 
 #include "pch.h"
-
-#include <algorithm_assembler/interfaces.hpp>
-#include <algorithm_assembler/detail/data_processor_funcs.hpp>
-
 #include "test_objects.hpp"
-
-using namespace std;
-
-using namespace algorithm_assembler::detail;
-namespace aa = algorithm_assembler;
 
 INI_TEST_OBJECT(0)
 INI_TEST_OBJECT(1)
@@ -66,7 +57,7 @@ TEST(Data_processor_functions, process_though_functor_one_copy)
 
 	Test_functor f;
 	Test_data<std::string, 0> in = "Input"s;
-	auto out = process_though_functor(f, in);
+	auto out = process_through_functor(f, in);
 
 	ASSERT_EQ(out, "Input processed"s);
 
@@ -87,7 +78,7 @@ TEST(Data_processor_functions, process_though_functor_one_const_ref)
 
 	Test_functor f;
 	Test_data<std::string, 0> in = "Input"s;
-	auto out = process_though_functor(f, in);
+	auto out = process_through_functor(f, in);
 
 	ASSERT_EQ(out, "Input processed"s);
 	ASSERT_EQ(Test_object<0>::default_counter, 0);
@@ -102,16 +93,16 @@ TEST(Data_processor_functions, process_though_functor_one_ref)
 
 	struct Test_functor : public aa::Functor<Test_data<string, 0>&, Test_data<string, 0>&>
 	{
-		Test_data<string, 0>& operator()(Test_data<string, 0>& t) override 
-		{ 
+		Test_data<string, 0>& operator()(Test_data<string, 0>& t) override
+		{
 			t.data += " processed";
-			return t; 
+			return t;
 		}
 	};
 
 	Test_functor f;
 	Test_data<std::string, 0> in = "Input"s;
-	auto& out = process_though_functor(f, in);
+	auto& out = process_through_functor(f, in);
 
 	ASSERT_EQ(out, "Input processed"s);
 	ASSERT_EQ(in, "Input processed"s);
@@ -136,7 +127,7 @@ TEST(Data_processor_functions, process_though_functor_one_forwarding)
 
 	Test_functor f;
 	auto&& in = Test_data<std::string, 0>("Input"s);
-	auto& out = process_though_functor(f, std::forward<Test_data<std::string, 0>>(in));
+	auto& out = process_through_functor(f, std::forward<Test_data<std::string, 0>>(in));
 
 	ASSERT_EQ(out, "Input processed"s);
 	ASSERT_EQ(in, "Input processed"s);
@@ -162,7 +153,7 @@ TEST(Data_processor_functions, process_though_functor_one_moving)
 
 	Test_functor f;
 	auto&& in = Test_data<std::string, 0>("Input"s);
-	auto&& out = process_though_functor(f, std::forward<Test_data<std::string, 0>>(in));
+	auto&& out = process_through_functor(f, std::forward<Test_data<std::string, 0>>(in));
 
 	ASSERT_EQ(out, "Input processed"s);
 	ASSERT_EQ(in, "Moved"s);
@@ -180,9 +171,9 @@ TEST(Data_processor_functions, process_though_functor_in_tuple)
 	reset_counters<2>();
 	reset_counters<3>();
 
-	struct Test_functor : public aa::Functor<string, 
-		Test_data<string, 0>, 
-		const Test_data<string, 3> &,
+	struct Test_functor : public aa::Functor<string,
+		Test_data<string, 0>,
+		const Test_data<string, 3>&,
 		Test_data<string, 2>&,
 		Test_data<string, 1>&&
 	>
@@ -195,7 +186,7 @@ TEST(Data_processor_functions, process_though_functor_in_tuple)
 			) override
 		{
 			auto&& n3 = Test_data<string, 1>(move(t3));
-			auto result = 
+			auto result =
 				t0.data + ' '
 				+ t1.data + ' '
 				+ t2.data + ' '
@@ -222,10 +213,10 @@ TEST(Data_processor_functions, process_though_functor_in_tuple)
 		const Test_data<std::string, 3>&
 	>(5, in0, move(in1), true, in2, 5.5, in3);
 
-	auto out = process_though_functor(f, 
+	auto out = process_through_functor(f,
 		std::forward<remove_reference_t<decltype(ins)>>(ins),
 		Test_functor::Input_types{}
-		);
+	);
 
 
 	ASSERT_EQ(out, "In0 In3 In2 In1"s);
@@ -265,13 +256,13 @@ TEST(Data_processor_functions, process_data_simple_functors)
 	struct F0 : public aa::Functor<Test_data<string, 0>>
 	{
 		Test_data<string, 0> operator()() override { return "F0 created "s; }
-		bool is_active() const override { return true;  }
+		bool is_active() const override { return true; }
 	};
 
 	struct F1 : public aa::Functor<
 		std::tuple<
-			Test_data<string, 0>&&,
-			Test_data<string, 1>&
+		Test_data<string, 0>&&,
+		Test_data<string, 1>&
 		>,
 		Test_data<string, 0>&&
 	> {
@@ -279,7 +270,7 @@ TEST(Data_processor_functions, process_data_simple_functors)
 
 		Test_data<string, 1> out1;
 
-		Output operator()(Test_data<string, 0> && in) override
+		Output operator()(Test_data<string, 0>&& in) override
 		{
 			out1.data = in.data + "F1 created "s;
 			in.data += "F1 forwarded "s;
@@ -297,7 +288,7 @@ TEST(Data_processor_functions, process_data_simple_functors)
 		const Test_data<string, 1>&
 	> {
 		Test_data<string, 2> operator()(Test_data<string, 0>&& in0, const Test_data<string, 1>& in1) override
-		{ 
+		{
 			return in0.data + "/ " + in1.data;
 		}
 	};
@@ -329,7 +320,7 @@ TEST(Data_processor_functions, process_data_simple_functors)
 
 TEST(Data_processor_functions, process_data_demandant)
 {
-	struct F : 
+	struct F :
 		public aa::Functor<int, int>,
 		public aa::Demands<std::string>
 	{
@@ -339,11 +330,12 @@ TEST(Data_processor_functions, process_data_demandant)
 	};
 
 	F f;
-	std::tuple<std::string, float> aux("Origin", 0.f);
+	std::string s = "Origin";
+	float d = 0.f;
 
-	process_data(0, aux, f);
+	process_data(0, std::tuple(s, d), f);
 
-	ASSERT_EQ(std::get<std::string>(aux), f.s);
+	ASSERT_EQ(s, f.s);
 }
 
 TEST(Data_processor_functions, process_data_demandant_several_types)
@@ -353,17 +345,108 @@ TEST(Data_processor_functions, process_data_demandant_several_types)
 		public aa::Demands<std::string, double>
 	{
 		std::string s;
-		double d;
+		double d = 0;
 		int operator()(int i) override { return i; }
 		void set(const std::string& str) override { s = str; }
 		void set(const double& db) override { d = db; }
 	};
 
 	F f;
-	std::tuple<std::string, float, double> aux("Origin", 0.f, 15.6);
+	std::string s = "Origin";
+	float d = 0.f;
 
-	process_data(0, aux, f);
+	process_data(0, std::tuple(s, d), f);
 
-	ASSERT_EQ(std::get<std::string>(aux), f.s);
-	ASSERT_EQ(std::get<double>(aux), f.d);
+	ASSERT_EQ(s, f.s);
+	ASSERT_EQ(d, f.d);
+}
+
+
+namespace initialize_const_aux_data_test
+{
+	struct F1 :
+		public Generates<
+		Types_with_policy<Updating_policy::never, int, bool>,
+		Types_with_policy<Updating_policy::always, float>
+		>
+	{
+	public:
+		AA_GENERATES
+
+		int i = 10;
+		float f = 5.5f;
+
+		bool gi = false;
+		bool gb = false;
+		bool gf = false;
+
+		template<>
+		static float get<float>(F1& f) { f.gf = true; return f.f; }
+
+		template<>
+		static bool get<bool>(F1& f) { f.gb = true; return true; }
+
+		template<>
+		static int get<int>(F1& f) { f.gi = true; return f.i; }
+	};
+
+	struct F2 :
+		public Generates<Types_with_policy<Updating_policy::never, double>>,
+		public Transforms<Types_with_policy<Updating_policy::never, int>>
+	{
+	public:
+		AA_GENERATES
+
+		bool gd = false;
+		bool ti = false;
+
+		template<>
+		static double get<double>(F2& f) { f.gd = true; return 2.2; }
+
+		void transform(int& i) override { i += 5; ti = true; }
+	};
+
+	struct F3 : public aa::Demands<int, float>
+	{
+		int i = 0;
+		float f = 0;
+
+		void set(const int& i_) override { i = i_; }
+		void set(const float& f_) override { f = f_; }
+	};
+}
+
+TEST(Data_processor_functions, get_generated)
+{
+	using namespace initialize_const_aux_data_test;
+
+	F1 f;
+
+	auto [i, fl] = get_generated(f, Typelist<int, float>{});
+
+	ASSERT_EQ(i, f.i);
+	ASSERT_EQ(fl, f.f);
+
+	ASSERT_TRUE(f.gf);
+	ASSERT_TRUE(f.gi);
+}
+
+TEST(Data_processor_functions, initialize_const_aux_data)
+{
+	using namespace initialize_const_aux_data_test;
+
+	F1 f1;
+	F2 f2;
+	F3 f3;
+
+	initialize_const_aux_data(std::tuple<>(), f1, f2, f3);
+	ASSERT_FALSE(f1.gb);
+	ASSERT_TRUE(f1.gi);
+	ASSERT_FALSE(f1.gf);
+
+	ASSERT_FALSE(f2.gd);
+	ASSERT_TRUE(f2.ti);
+
+	ASSERT_EQ(f3.i, 15);
+	ASSERT_EQ(f3.f, 0);
 }

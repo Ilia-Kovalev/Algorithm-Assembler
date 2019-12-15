@@ -16,12 +16,7 @@ Copyright 2019 Ilia S. Kovalev
 
 #include "pch.h"
 
-#include <type_traits>
 #include <tuple>
-
-#include <algorithm_assembler/utils/typelist.hpp>
-
-using namespace algorithm_assembler::utils;
 
 TEST(Typelist, type)
 {

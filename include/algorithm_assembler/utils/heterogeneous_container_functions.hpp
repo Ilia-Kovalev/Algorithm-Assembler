@@ -204,10 +204,20 @@ namespace algorithm_assembler::utils
 	template<class Container, typename Function>
 	struct map;
 
-	template<typename... Content, template <typename> class F, template<typename...> class Container, typename _>
-	struct map<Container<Content...>, F<_>>
+	template<typename T, typename... Ts, template <typename> class F, 
+		template<typename...> class Container, typename _>
+	struct map<Container<T, Ts...>, F<_>>
 	{
-		using type = Container<typename F<Content>::type...>;
+		using type = Container<
+			typename F<T>::type,
+			typename F<Ts>::type...
+		>;
+	};
+
+	template<template<typename...> class Container, typename F>
+	struct map<Container<>, F>
+	{
+		using type = Container<>;
 	};
 
 	template<class Container, class Function>

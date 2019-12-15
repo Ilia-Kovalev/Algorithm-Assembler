@@ -16,9 +16,6 @@ Copyright 2019 Ilia S. Kovalev
 
 #include "pch.h"
 
-#include <algorithm_assembler/interfaces.hpp>
-
-using namespace algorithm_assembler;
 
 class Generator_Test :
 	public Generates<
@@ -30,11 +27,11 @@ class Generator_Test :
 public:
 	AA_GENERATES_SOMETIMES;
 
-	template<> int get<int>() override { return 5; }
-	template<> float get<float>() override { return 5.5; }
-	template<> bool get<bool>() override { return true; }
-	template<> double get<double>() override { return -2.6; }
-	template<> char get<char>() override { return 'a'; }
+	template<> static int get<int>(Generator_Test&) { return 5; }
+	template<> static float get<float>(Generator_Test&) { return 5.5; }
+	template<> static bool get<bool>(Generator_Test&) { return true; }
+	template<> static double get<double>(Generator_Test&) { return -2.6; }
+	template<> static char get<char>(Generator_Test&) { return 'a'; }
 	
 	template<> bool has_new_data<double>() const override { return false; }
 };
@@ -43,11 +40,11 @@ TEST(Interfaces, Generator)
 {
 	Generator_Test gt;
 
-	ASSERT_EQ(gt.get<int>(), 5);
-	ASSERT_EQ(gt.get<float>(), 5.5);
-	ASSERT_EQ(gt.get<bool>(), true);
-	ASSERT_EQ(gt.get<double>(), -2.6);
-	ASSERT_EQ(gt.get<char>(), 'a');
+	ASSERT_EQ(gt.get<int>(gt), 5);
+	ASSERT_EQ(gt.get<float>(gt), 5.5);
+	ASSERT_EQ(gt.get<bool>(gt), true);
+	ASSERT_EQ(gt.get<double>(gt), -2.6);
+	ASSERT_EQ(gt.get<char>(gt), 'a');
 
 	ASSERT_FALSE(gt.has_new_data<double>());
 }

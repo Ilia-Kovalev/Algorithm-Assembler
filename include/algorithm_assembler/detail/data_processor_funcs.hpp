@@ -21,6 +21,92 @@ Copyright 2019 Ilia S. Kovalev
 
 namespace algorithm_assembler::detail
 {
+	template<class F, typename... Generated>
+	inline auto get_generated(F& f, utils::Typelist<Generated...>&&)
+	{
+		return std::tuple(F::get<Generated>(f)...);
+	}
+
+	template<class F, typename Tuple, typename... Transformed>
+	inline void transform(F& f, Tuple& in_tuple, utils::Typelist<Transformed...>&&)
+	{
+		(f.transform(std::get<Transformed>(in_tuple)), ...);
+	}
+
+	template<class F, typename Tuple, typename... Demanded>
+	inline void set_to_demandant(F& f, const Tuple& in_tuple, utils::Typelist<Demanded...>&&)
+	{
+		(f.set(std::get<Demanded>(in_tuple)), ...);
+	}
+
+	template<class F, class... Fs, typename... Ts>
+	inline void initialize_const_aux_data(std::tuple<Ts...>&& aux, F& f, Fs&... tail)
+	{
+		using Available_aux_types = utils::Typelist<Ts...>;
+
+		if constexpr (is_transformer_v<F>)
+		{
+			using Transformed_available_types = utils::intersection_t<
+				Available_aux_types,
+				typename F::Transforms_types
+			>;
+
+			transform(f, aux, Transformed_available_types{});
+		}
+
+
+		if constexpr (is_demandant_v<F>)
+		{
+			using Demanded_available_types = utils::intersection_t<
+				Available_aux_types,
+				typename F::Demands_types
+			>;
+
+			set_to_demandant(f, aux, Demanded_available_types{});
+		}
+
+		using Generated_now_const_types =
+			get_generated_types_by_policy_t<Updating_policy::never, F>;
+
+		using Transforming_later_non_const_types =
+			utils::unique_t<utils::concatenation_t<
+				get_transformed_types_by_policy_t<Updating_policy::always, Fs...>,
+				get_transformed_types_by_policy_t<Updating_policy::sometimes, Fs...>
+			>>;
+
+		using Demanded_later_types =
+			utils::unique_t<utils::concatenation_t<
+			get_demanded_types_t<Fs...>
+			>>;
+
+		using Always_const_generated_types =
+			utils::intersection_t<
+				utils::substraction_t<
+					Generated_now_const_types,
+					Transforming_later_non_const_types
+				>,
+			Demanded_later_types
+			>;
+
+		constexpr bool is_generating_const_data =
+			!Always_const_generated_types::is_empty;
+
+		if constexpr (sizeof...(Fs) == 0)
+			return;
+		else if constexpr (is_generating_const_data)
+			initialize_const_aux_data(
+				std::tuple_cat(
+					std::forward<std::tuple<Ts...>>(aux),
+					get_generated(f, Always_const_generated_types{})
+				),
+				tail...
+			);
+		else
+			initialize_const_aux_data(
+				std::forward<std::tuple<Ts...>>(aux),
+				tail...);
+	}
+
 	template<typename T, typename Tuple, typename = std::enable_if_t<utils::is_tuple_v<Tuple>>>
 	inline T&& tuple_get_wrapper(Tuple&& t)
 	{
@@ -41,13 +127,13 @@ namespace algorithm_assembler::detail
 	}
 
 	template<class F, typename Input>
-	inline auto process_though_functor(F& f, Input&& in) -> typename F::Output_type
+	inline auto process_through_functor(F& f, Input&& in) -> typename F::Output_type
 	{
 		return f(std::forward<Input>(in));
 	}
 
 	template<class F, typename Tuple, typename... F_ins>
-	inline auto process_though_functor(
+	inline auto process_through_functor(
 		F& f,
 		Tuple&& in_tuple,
 		utils::Typelist<F_ins...>&&
@@ -58,49 +144,53 @@ namespace algorithm_assembler::detail
 			)...);
 	}
 
-	template<class F, typename Tuple, typename... Denamded>
-	inline auto set_to_damandand(F& f, Tuple&& in_tuple, utils::Typelist<Denamded...>&&)
-	{
-		(f.set(std::get<Denamded>(in_tuple)), ...);
-	}
-
-	template<class F, class... Fs>
+	template<class F, class... Fs,
+		typename = std::enable_if_t<std::is_base_of_v<Functor_, std::remove_reference_t<F>>>
+	>
 	inline auto process_data(F& f, Fs&... tail) 
 		-> typename utils::Typelist<F, Fs...>::back::Output_type
 	{
-		// TODO Replace by auxiliary data
-		int aux = 0;
-
 		if constexpr (sizeof...(tail) > 0)
-			return process_data(f(), aux, tail...);
+			return process_data(f(), std::tuple<>(), tail...);
 		else
 			return f();
 	}
 
-	template<typename Input, typename Auxiliary, class F, class... Fs,
-		typename = std::enable_if_t<!std::is_base_of_v<Functor, std::remove_reference_t<Input>>>
-	>
-	inline auto process_data(Input&& in, Auxiliary&& aux, F& f, Fs&... tail)
+	template<typename Input, class F, class... Fs, typename... Ts>
+		inline auto process_data(Input&& in, std::tuple<Ts...>&& aux, F& f, Fs&... tail)
 		-> typename utils::Typelist<F, Fs...>::back::Output_type
 	{
 		bool constexpr is_end = sizeof...(tail) == 0;
 		bool constexpr is_input_tuple = utils::is_tuple_v<std::remove_reference_t<Input>>;
 
+		using Available_aux_types = utils::Typelist<Ts...>;
+
 		if constexpr (std::is_base_of_v<detail::Demandant, F>)
-			set_to_damandand(f, std::forward<Auxiliary>(aux), F::Demanded_types{});
+		{
+			using Demanded_available_types = utils::intersection_t<
+				Available_aux_types,
+				F::Demands_types
+			>;
+
+			set_to_demandant(f, aux, Demanded_available_types{});
+		}
 
 		if constexpr (!is_end && is_input_tuple)
 			return process_data(
-				process_though_functor(f, std::forward<Input>(in), F::Input_types{}),
-				aux, tail...);
+				process_through_functor(f, std::forward<Input>(in), F::Input_types{}),
+				std::forward<std::tuple<Ts...>>(aux), 
+				tail...);
+
 		else if constexpr (!is_end && !is_input_tuple)
 			return process_data(
-				process_though_functor(f, std::forward<Input>(in)),
-				aux, tail...);
+				process_through_functor(f, std::forward<Input>(in)),
+				std::forward<std::tuple<Ts...>>(aux),
+				tail...);
+
 		else if constexpr (is_end && is_input_tuple)
-			return process_though_functor(f, std::forward<Input>(in), F::Input_types{});
+			return process_through_functor(f, std::forward<Input>(in), F::Input_types{});
 		else
-			return process_though_functor(f, std::forward<Input>(in));
+			return process_through_functor(f, std::forward<Input>(in));
 	}
 }
 
