@@ -112,7 +112,7 @@ namespace algorithm_assembler
 	{
 	public:
 		// Macros are necessary to add in inherited classes before overriding virtual methods.
-		#define AA_TRANSFORMS_SOMETIMES template<typename> bool transformation_changed() const;
+		#define AA_TRANSFORMS_SOMETIMES template<typename> bool is_transformation_changed() const;
 
 		using Transforms_types = utils::concatenation_t<
 			typename Types_with_policy::types,

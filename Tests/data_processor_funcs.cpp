@@ -367,14 +367,14 @@ namespace initialize_aux_data_test
 	struct F1 :
 		public aa::Functor<int>,
 		public Generates<
-			Types_with_policy<Updating_policy::never, int, bool, char>,
-			Types_with_policy<Updating_policy::always, float>
+		Types_with_policy<Updating_policy::never, int, bool, char>,
+		Types_with_policy<Updating_policy::always, float>
 		>
 	{
 	public:
 		AA_GENERATES
 
-		int i = 10;
+			int i = 10;
 		float f = 5.5f;
 
 		bool gi = false;
@@ -403,14 +403,14 @@ namespace initialize_aux_data_test
 		public aa::Functor<int, int>,
 		public Generates<Types_with_policy<Updating_policy::never, double>>,
 		public Transforms<
-			Types_with_policy<Updating_policy::never, int>,
-			Types_with_policy<Updating_policy::always, char>
+		Types_with_policy<Updating_policy::never, int>,
+		Types_with_policy<Updating_policy::always, char>
 		>
 	{
 	public:
 		AA_GENERATES
 
-		char c = '0';
+			char c = '0';
 
 		bool gd = false;
 		bool ti = false;
@@ -507,3 +507,302 @@ TEST(Data_processor_functions, aux_data_changes_always)
 	ASSERT_EQ(f3.i, 0);
 }
 
+namespace aux_data_changes_sometimes_simple
+{
+	struct F1 :
+		public Functor<int, int>,
+		public Generates<Types_with_policy<Updating_policy::sometimes, int, float>>
+	{
+		bool bi = true;
+		bool bf = true;
+
+		int operator()(int i) { return i; }
+
+		AA_GENERATES_SOMETIMES
+
+			template<> bool has_new_data<int>() const { return bi; }
+		template<> bool has_new_data<float>() const { return bf; }
+
+		template<>
+		static int get<int>(F1& f) {
+			if (f.bi)
+			{
+				f.bi = false;
+				return 10;
+			}
+			else
+				return 5;
+		}
+
+		template<>
+		static float get<float>(F1& f) { return 1.2f; }
+	};
+
+	struct F2 :
+		public Functor<int, int>,
+		public Demands<int, float>
+	{
+		int i = 0;
+		float f = 0;
+
+		int operator()(int i) { return i; }
+
+		void set(const int& i_) { i = i_; }
+		void set(const float& f_) { f = f_; }
+	};
+}
+
+TEST(Data_processor_functions, aux_data_changes_sometimes_simple)
+{
+	using namespace aux_data_changes_sometimes_simple;
+
+	F1 f1;
+	F2 f2;
+
+	process_data(0, tuple(), f1, f2);
+
+	ASSERT_FALSE(f1.bi);
+
+	ASSERT_EQ(f2.i, 10);
+	ASSERT_EQ(f2.f, 1.2f);
+
+	process_data(0, tuple(), f1, f2);
+
+	ASSERT_FALSE(f1.bi);
+
+	ASSERT_EQ(f2.i, 10);
+	ASSERT_EQ(f2.f, 1.2f);
+}
+
+namespace aux_data_changes_sometimes_simple_with_non_optional
+{
+	struct F1 :
+		public Functor<int, int>,
+		public Generates<
+			Types_with_policy<Updating_policy::sometimes, int, float>,
+			Types_with_policy<Updating_policy::always, char>
+		>
+	{
+		bool bi = true;
+		bool bf = true;
+
+		int operator()(int i) { return i; }
+
+		AA_GENERATES_SOMETIMES;
+
+		template<> bool has_new_data<int>() const { return bi; }
+		template<> bool has_new_data<float>() const { return bf; }
+
+		template<>
+		static int get<int>(F1& f) {
+			if (f.bi)
+			{
+				f.bi = false;
+				return 10;
+			}
+			else
+				return 5;
+		}
+
+		template<>
+		static float get<float>(F1& f) { return 1.2f; }
+
+		template<>
+		static char get<char>(F1& f) { return 'a'; }
+	};
+
+	struct F2 :
+		public Functor<int, int>,
+		public Demands<int, float, char>
+	{
+		int i = 0;
+		float f = 0;
+		char c = 0;
+
+		int operator()(int i) { return i; }
+
+		void set(const int& i_) { i = i_; }
+		void set(const float& f_) { f = f_; }
+		void set(const char& c_) { c = c_; }
+	};
+}
+
+TEST(Data_processor_functions, aux_data_changes_sometimes_simple_with_non_optional)
+{
+	using namespace aux_data_changes_sometimes_simple_with_non_optional;
+
+	F1 f1;
+	F2 f2;
+
+	process_data(0, tuple(), f1, f2);
+
+	ASSERT_FALSE(f1.bi);
+
+	ASSERT_EQ(f2.i, 10);
+	ASSERT_EQ(f2.f, 1.2f);
+	ASSERT_EQ(f2.c, 'a');
+
+	process_data(0, tuple(), f1, f2);
+
+	ASSERT_FALSE(f1.bi);
+
+	ASSERT_EQ(f2.i, 10);
+	ASSERT_EQ(f2.f, 1.2f);
+	ASSERT_EQ(f2.c, 'a');
+}
+
+namespace aux_data_changes_never_gen_somt_tr
+{
+	struct F1 :
+		public Functor<int, int>,
+		public Generates<Types_with_policy<Updating_policy::never, int>>
+	{
+		int operator()(int i) { return i; }
+
+		AA_GENERATES;
+
+		template<>
+		static int get<int>(F1& f) { return 10; }
+	};
+
+	struct F2 :
+		public Functor<int, int>,
+		public Transforms<Types_with_policy<Updating_policy::sometimes, int>>
+	{
+		int operator()(int i) { return i; }
+
+		AA_TRANSFORMS_SOMETIMES;
+
+		bool nt = true;
+
+		template<>
+		bool is_transformation_changed<int>() const { return nt; }
+
+		void transform(int& i)
+		{
+			if (nt)
+				i *= 2;
+			else
+				i = 0;
+			nt = false;
+		}
+	};
+
+	struct F3 :
+		public Functor<int, int>,
+		public Demands<int>
+	{
+		int i = 0;
+
+		int operator()(int i) { return i; }
+
+		void set(const int& i_) { i = i_; }
+	};
+}
+
+TEST(Data_processor_functions, aux_data_changes_never_gen_somt_tr)
+{
+	using namespace aux_data_changes_never_gen_somt_tr;
+
+	F1 f1;
+	F2 f2;
+	F3 f3;
+
+	process_data(0, tuple(), f1, f2, f3);
+
+	ASSERT_FALSE(f2.nt);
+	ASSERT_EQ(f3.i, 20);
+
+	process_data(0, tuple(), f1, f2, f3);
+
+	ASSERT_FALSE(f2.nt);
+	ASSERT_EQ(f3.i, 20);
+}
+
+
+namespace aux_data_changes_somt_gen_somt_tr
+{
+	struct F1 :
+		public Functor<int, int>,
+		public Generates<Types_with_policy<Updating_policy::sometimes, int>>
+	{
+		bool bi = false;
+
+		int operator()(int i) { return i; }
+
+		AA_GENERATES_SOMETIMES;
+
+		template<>
+		static int get<int>(F1& f) 
+		{ 
+			if (f.bi) {
+				f.bi = !f.bi;
+				return 10;
+			}
+			else {
+				f.bi = !f.bi;
+				return 5;
+			}
+		}
+
+		template<>
+		bool has_new_data<int>() const { return bi; }
+	};
+
+	struct F2 :
+		public Functor<int, int>,
+		public Transforms<Types_with_policy<Updating_policy::sometimes, int>>
+	{
+		int operator()(int i) { return i; }
+
+		AA_TRANSFORMS_SOMETIMES;
+
+		bool nt = true;
+
+		template<>
+		bool is_transformation_changed<int>() const { return nt; }
+
+		void transform(int& i)
+		{
+			if (nt)
+				i *= 2;
+			else
+				i = 0;
+			nt = false;
+		}
+	};
+
+	struct F3 :
+		public Functor<int, int>,
+		public Demands<int>
+	{
+		int i = 0;
+
+		int operator()(int i) { return i; }
+
+		void set(const int& i_) { i = i_; }
+	};
+}
+
+TEST(Data_processor_functions, aux_data_changes_somt_gen_somt_tr)
+{
+	using namespace aux_data_changes_somt_gen_somt_tr;
+
+	F1 f1;
+	F2 f2;
+	F3 f3;
+
+	process_data(0, tuple(), f1, f2, f3);
+	ASSERT_EQ(f3.i, 10);
+
+	f2.nt = true;
+	process_data(0, tuple(), f1, f2, f3);
+	ASSERT_EQ(f3.i, 20);
+
+	process_data(0, tuple(), f1, f2, f3);
+	ASSERT_EQ(f3.i, 20);
+
+	f1.bi = true;
+	process_data(0, tuple(), f1, f2, f3);
+	ASSERT_EQ(f3.i, 0);
+}

@@ -17,6 +17,8 @@ Copyright 2019 Ilia S. Kovalev
 #ifndef INTERFACES_DETAIL_HPP
 #define INTERFACES_DETAIL_HPP
 
+#include <optional>
+
 #include "../interfaces.hpp"
 #include "../enums.hpp"
 
@@ -104,13 +106,13 @@ namespace algorithm_assembler::detail
 		/// </summary>
 		virtual void transform(T& data) = 0;
 
-		template<typename T_> bool transformation_changed() const;
+		template<typename T_> bool is_transformation_changed() const;
 
 		/// <summary>
 		/// Indicates if transformations was changed.
 		/// </summary>
 		/// <returns></returns>
-		template<> virtual bool transformation_changed<T>() const;
+		template<> virtual bool is_transformation_changed<T>() const;
 	};
 
 	template<typename Types_with_policy>

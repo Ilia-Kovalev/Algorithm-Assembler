@@ -64,8 +64,8 @@ public:
 	void transform(char& in) override { in = 'b'; }
 
 
-	template<> bool transformation_changed<double>() const override { return true; }
-	template<> bool transformation_changed<float>() const override { return false; }
+	template<> bool is_transformation_changed<double>() const override { return true; }
+	template<> bool is_transformation_changed<float>() const override { return false; }
 };
 
 TEST(Interfaces, Transformer)
@@ -88,8 +88,8 @@ TEST(Interfaces, Transformer)
 	tt.transform(c);
 	ASSERT_EQ(c, 'b');
 
-	ASSERT_TRUE(tt.transformation_changed<double>());
-	ASSERT_FALSE(tt.transformation_changed<float>());
+	ASSERT_TRUE(tt.is_transformation_changed<double>());
+	ASSERT_FALSE(tt.is_transformation_changed<float>());
 }
 
 

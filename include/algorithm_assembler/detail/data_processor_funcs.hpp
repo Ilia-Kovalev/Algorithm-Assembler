@@ -21,22 +21,107 @@ Copyright 2019 Ilia S. Kovalev
 
 namespace algorithm_assembler::detail
 {
+	template<typename T>
+	struct unpack_optional
+	{
+		using type = T;
+	};
+
+	template<typename T>
+	struct unpack_optional<std::optional<T>>
+	{
+		using type = T;
+	};
+
+	template<typename T>
+	struct to_optional
+	{
+		using type = std::optional<T>;
+	};
+
+
 	template<class F, typename... Generated>
 	inline auto get_generated(F& f, utils::Typelist<Generated...>&&)
 	{
-		return std::tuple(F::get<Generated>(f)...);
+		return std::make_tuple(F::get<Generated>(f)...);
 	}
 
-	template<class F, typename Tuple, typename... Transformed>
-	inline void transform(F& f, Tuple& in_tuple, utils::Typelist<Transformed...>&&)
+	template<typename T, class F>
+	inline bool check_new_transformations(F& f)
 	{
-		(f.transform(std::get<Transformed>(in_tuple)), ...);
+		if constexpr (std::is_base_of_v<Transforms_type_with_policy<Updating_policy::sometimes, T>, F>)
+			return f.is_transformation_changed<T>();
+		else
+			return false;
 	}
 
-	template<class F, typename Tuple, typename... Demanded>
-	inline void set_to_demandant(F& f, const Tuple& in_tuple, utils::Typelist<Demanded...>&&)
+	template<typename Generated, class F, class... Fs>
+	inline std::optional<Generated> get_optional_generated_by_type(F& f, Fs&... fs)
 	{
-		(f.set(std::get<Demanded>(in_tuple)), ...);
+		if constexpr (std::is_base_of_v<Generates_type_with_policy<Updating_policy::never, Generated>, F>)
+		{
+			if ((check_new_transformations<Generated>(fs) || ...))
+				return F::get<Generated>(f);
+			else
+				return {};
+		}
+		else if constexpr (std::is_base_of_v<Generates_type_with_policy<Updating_policy::sometimes, Generated>, F>)
+		{
+			if (f.has_new_data<Generated>() || (check_new_transformations<Generated>(fs) || ...))
+				return F::get<Generated>(f);
+			else
+				return {};
+		}
+
+		return {};
+	}
+
+	template<class F, class... Fs, typename... Generated>
+	inline auto get_optional_generated(F& f, utils::Typelist<Generated...>&&, Fs&... fs)
+	{
+		return std::make_tuple(get_optional_generated_by_type<Generated>(f, fs...)...);
+	}
+
+	template<class F, typename T>
+	inline void transform_type(F& f, T& in)
+	{
+		if constexpr (std::is_base_of_v<Transforms_type<T>, F>)
+			f.transform(in);
+	}
+
+	template<class F, typename T>
+	inline void transform_type(F& f, std::optional<T>& in)
+	{
+		if constexpr (std::is_base_of_v<Transforms_type<T>, F>)
+			if (in.has_value())
+				f.transform(in.value());
+	}
+
+	template<class F, typename... Ts>
+	inline void transform(F& f, std::tuple<Ts...>& in_tuple)
+	{
+		(transform_type(f, std::get<Ts>(in_tuple)), ...);
+	}
+
+	template<class F, typename T>
+	inline void set_type_to_demandant(F& f, const T& in)
+	{
+		if constexpr (std::is_base_of_v<Demands_type<T>, F>)
+			f.set(in);
+	}
+
+	template<class F, typename T>
+	inline void set_type_to_demandant(F& f, const std::optional<T>& in)
+	{
+		if constexpr (std::is_base_of_v<Demands_type<T>, F>)
+			if (in.has_value())
+				f.set(in.value());
+	}
+
+	template<class F, typename... Ts>
+	inline void set_to_demandant(F& f, const std::tuple<Ts...>& in_tuple)
+	{
+		(set_type_to_demandant(f, std::get<Ts>(in_tuple)), ...);
 	}
 
 	template<class F, class... Fs, typename... Ts>
@@ -44,34 +129,16 @@ namespace algorithm_assembler::detail
 	{
 		using Available_aux_types = utils::Typelist<Ts...>;
 
-		if constexpr (is_transformer_v<F>)
-		{
-			using Transformed_available_types = utils::intersection_t<
-				Available_aux_types,
-				typename F::Transforms_types
-			>;
-
-			transform(f, aux, Transformed_available_types{});
-		}
-
-
-		if constexpr (is_demandant_v<F>)
-		{
-			using Demanded_available_types = utils::intersection_t<
-				Available_aux_types,
-				typename F::Demands_types
-			>;
-
-			set_to_demandant(f, aux, Demanded_available_types{});
-		}
+		transform(f, aux);
+		set_to_demandant(f, aux);
 
 		using Generated_now_const_types =
 			get_generated_types_by_policy_t<Updating_policy::never, F>;
 
 		using Transforming_later_non_const_types =
 			utils::unique_t<utils::concatenation_t<
-			get_transformed_types_by_policy_t<Updating_policy::always, Fs...>,
-			get_transformed_types_by_policy_t<Updating_policy::sometimes, Fs...>
+				get_transformed_types_by_policy_t<Updating_policy::always, Fs...>,
+				get_transformed_types_by_policy_t<Updating_policy::sometimes, Fs...>
 			>>;
 
 		using Demanded_later_types =
@@ -81,15 +148,12 @@ namespace algorithm_assembler::detail
 
 		using Always_const_generated_types =
 			utils::intersection_t<
-			utils::substraction_t<
-			Generated_now_const_types,
-			Transforming_later_non_const_types
-			>,
+				utils::substraction_t<
+					Generated_now_const_types,
+					Transforming_later_non_const_types
+				>,
 			Demanded_later_types
 			>;
-
-		constexpr bool is_generating_const_data =
-			!Always_const_generated_types::is_empty;
 
 		if constexpr (sizeof...(Fs) > 0)
 			initialize_const_aux_data(
@@ -123,7 +187,7 @@ namespace algorithm_assembler::detail
 	template<typename Tuple, typename... Ts>
 	inline auto filter_listed_types(Tuple&& t, utils::Typelist<Ts...>&&)
 	{
-		return std::tuple(std::get<Ts>(std::forward<Tuple>(t))...);
+		return std::make_tuple(std::get<Ts>(std::forward<Tuple>(t))...);
 	}
 
 	template<class F, typename Input, typename _ = utils::Typelist<>,
@@ -152,17 +216,10 @@ namespace algorithm_assembler::detail
 	inline auto process_data(Input&& in, std::tuple<Ts...>&& aux, F& f, Fs&... tail)
 		-> typename utils::Typelist<F, Fs...>::back::Output_type
 	{
-		using Available_aux_types = utils::Typelist<Ts...>;
+		using Available_aux_types = utils::map_t<utils::Typelist<Ts...>, unpack_optional<void>>;
+		
 
-		if constexpr (std::is_base_of_v<detail::Demandant, F>)
-		{
-			using Demanded_available_types = utils::intersection_t<
-				Available_aux_types,
-				F::Demands_types
-			>;
-
-			set_to_demandant(f, aux, Demanded_available_types{});
-		}
+		set_to_demandant(f, aux);
 
 		if constexpr (sizeof...(Fs) > 0)
 		{
@@ -171,16 +228,7 @@ namespace algorithm_assembler::detail
 				F::Input_types{}
 			);
 
-			if constexpr (is_transformer_v<F>)
-			{
-				using Transformed_available_types = utils::intersection_t<
-					Available_aux_types,
-					typename F::Transforms_types,
-					get_demanded_types_t<Fs...>
-				>;
-
-				transform(f, aux, Transformed_available_types{});
-			}
+			transform(f, aux);
 
 			using Generated_now_const_types =
 				get_generated_types_by_policy_t<Updating_policy::never, F>;
@@ -208,9 +256,35 @@ namespace algorithm_assembler::detail
 				get_demanded_types_t<Fs...>
 			>;
 
-			using Remaining_types = utils::intersection_t<
-				Available_aux_types,
-				get_demanded_types_t<Fs...>
+			using Optional = utils::concatenation_t<
+				utils::substraction_t<
+					utils::intersection_t<
+						Demanded_generated_now,
+						get_generated_types_of_module_by_policy_t<F, Updating_policy::sometimes>
+					>,
+					get_generated_types_by_policy_t<Updating_policy::always, F>
+				>,
+				utils::intersection_t<
+					Demanded_generated_now,
+					get_generated_types_of_module_by_policy_t<F, Updating_policy::never>,
+					get_transformed_types_by_policy_t<Updating_policy::sometimes, Fs...>
+				>
+			>;
+
+			using Non_optional = utils::substraction_t<
+				Demanded_generated_now,
+				Optional
+			>;
+
+			using Remaining_types = utils::concatenation_t<
+				utils::intersection_t<
+					utils::Typelist<Ts...>,
+					get_demanded_types_t<Fs...>
+				>,
+				utils::intersection_t<
+					utils::Typelist<Ts...>,
+					utils::map_t<get_demanded_types_t<Fs...>, to_optional<void>>
+				>
 			>;
 
 			return process_data(
@@ -220,14 +294,14 @@ namespace algorithm_assembler::detail
 						std::forward<std::tuple<Ts...>>(aux),
 						Remaining_types{}
 					),
-					get_generated(f, Demanded_generated_now{})
+					get_generated(f, Non_optional{}),
+					get_optional_generated(f, Optional{}, tail...)
 				),
 				tail...);
 		}
 		else
 			return process_through_functor(f, std::forward<Input>(in), F::Input_types{});
 	}
-
 
 }
 
